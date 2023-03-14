@@ -1,0 +1,25 @@
+{
+    "name": "com.greyflow.easytodo",
+    "displayName": "EasyToDo",
+    "version": "1.0.0",
+    "unity": "2019.4",
+    "description": "A Unity Editor tool to help manage your to-do list.",
+    "category": "Editor",
+    "dependencies": {
+      "com.unity.textmeshpro": "2.1.2"
+    },
+    "keywords": [
+      "unity",
+      "editor",
+      "tool"
+    ],
+    "author": {
+      "name": "Dusan Mitrovic",
+      "email": "dusanmitrovic@elfak.rs"
+    },
+    "license": "MIT",
+    "unityRelease": {
+      "2019.4": ">=2019.4.0f1 <2019.5.0f1"
+    }
+  }
+  
