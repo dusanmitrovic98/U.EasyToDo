@@ -1,68 +1,87 @@
 using UnityEditor;
 using UnityEngine;
+using System.IO;
 
 /// <summary>
 /// Editor window for editing EasyToDo settings.
 /// </summary>
 public class EasyToDoSettingsWindow : EditorWindow
 {
+    private const string SETTINGS_FILE_NAME = "/EasyToDoSettings.json";
     private const string MENU_PATH_OPEN = "Window/EasyToDo/Settings";
-    private const string WINDOW_KEY_SETTINGS_OPEN = "%#e";
+    private const string MENU_PATH_CLOSE = "Window/EasyToDo/Close Settings";
+    private const string WINDOW_KEY_SETTINGS_OPEN = "%&w";
+    private const string WINDOW_KEY_SETTINGS_CLOSE = "%&q";
+    private const string TITLE_CONTENT = "EasyToDo Settings";
     private const float WIDTH = 400f;
     private const float HEIGHT = 600f;
-    private static EditorWindow _window;
     private static EasyToDoSettings _settings;
+    private static string _settingsPath;
 
-    private static void InitializeWindow()
+
+    [MenuItem(MENU_PATH_OPEN + " " + WINDOW_KEY_SETTINGS_OPEN)]
+    private static void OpenWindow()
     {
-        // Set window properties
-        _window.titleContent = new GUIContent("EasyToDo Settings");
-        Utility.CenterWindow(_window, WIDTH, HEIGHT);
+        var window = GetWindow<EasyToDoSettingsWindow>();
+        window.titleContent = new GUIContent(TITLE_CONTENT);
+        Utility.CenterWindow(window, WIDTH, HEIGHT);
+    }
 
-        // Register event handlers
-        // ...
+    [MenuItem(MENU_PATH_CLOSE + " " + WINDOW_KEY_SETTINGS_CLOSE)]
+    private static void CloseWindow()
+    {
+        EasyToDoSettingsWindow window = EditorWindow.GetWindow<EasyToDoSettingsWindow>();
+        window.Close();
     }
 
     private void OnEnable()
     {
-        // Initialize data and resources
-        // ...
-    }
-
-    private void Start()
-    {
-        _settings.backgroundColor = new Color(0.2f, 0.2f, 0.2f);
-    }
-
-    private void OnGUI()
-    {
-        // Add UI elements
-        // ...
+        LoadSettings();
     }
 
     private void OnDisable()
     {
-        // Clean up data and resources
-        // ...
+        SaveSettings();
     }
 
-    [MenuItem(MENU_PATH_OPEN + " " + WINDOW_KEY_SETTINGS_OPEN)]
-    public static void ShowWindow()
+    private void OnGUI()
     {
-        _window = GetWindow<EasyToDoSettingsWindow>();
-        InitializeWindow();
-        _window.Show();
+        _settings.backgroundColor = EditorGUILayout.ColorField("Background Color", _settings.backgroundColor);
     }
 
-    private void LoadSettings()
+    /// <summary>
+    /// Load settings from local data file.
+    /// </summary>
+    /// <returns>Settings object.</returns>
+    public static EasyToDoSettings LoadSettings()
     {
-        string json = PlayerPrefs.GetString("EasyToDoSettings", "{}");
-        _settings = JsonUtility.FromJson<EasyToDoSettings>(json);
+        _settingsPath = Application.dataPath + SETTINGS_FILE_NAME;
+
+        if (File.Exists(_settingsPath))
+        {
+            string json = File.ReadAllText(_settingsPath);
+            _settings = JsonUtility.FromJson<EasyToDoSettings>(json);
+        }
+        else
+        {
+            _settings = new EasyToDoSettings();
+        }
+
+        return _settings;
     }
 
-    private void SaveSettings()
+    /// <summary>
+    /// Save settings to local data file.
+    /// </summary>
+    public static void SaveSettings()
     {
-        string json = JsonUtility.ToJson(_settings);
-        PlayerPrefs.SetString("EasyToDoSettings", json);
+        if (_settings == null)
+        {
+            return;
+        }
+
+        string json = JsonUtility.ToJson(_settings, true);
+
+        File.WriteAllText(_settingsPath, json);
     }
 }

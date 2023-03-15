@@ -6,6 +6,11 @@ using UnityEngine;
 public class EasyToDoSettings
 {
     public bool showCompletedTasks;
-    public int numTasksPerPage;
     public Color backgroundColor;
+
+    public EasyToDoSettings()
+    {
+        showCompletedTasks = true;
+        backgroundColor = Color.yellow;
+    }
 }

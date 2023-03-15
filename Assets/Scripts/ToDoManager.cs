@@ -38,7 +38,7 @@ public class ToDoManager : MonoBehaviour
     {
         if (listIndex >= 0 && listIndex < lists.Count)
         {
-            lists[listIndex].tasks.Add(new ToDo { name = taskName, completed = false });
+            lists[listIndex].tasks.Add(new Task(taskName, false));
         }
     }
 

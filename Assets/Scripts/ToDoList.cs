@@ -6,5 +6,5 @@ using System.Collections.Generic;
 [System.Serializable]
 public class ToDoList
 {
-    public List<ToDo> tasks;
+    public List<Task> tasks;
 }
