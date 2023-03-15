@@ -1,0 +1,5 @@
+* When both windows open at the same time and there was attempt to change colors, Unity crashes.
+    - Now both windows close other one when opened.
+        ~ Maybe different color change solution.
+
+* 

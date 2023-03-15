@@ -12,7 +12,7 @@ public class EasyToDoSettings
     public EasyToDoSettings()
     {
         showCompletedTasks = true;
-        backgroundColor = new Color(38, 37, 92, 4);
-        navbarColor = new Color(54, 53, 109, 4);
+        backgroundColor = new Color(0.211f, 0.207f, 0.42f, 4);
+        navbarColor = new Color(0.149f, 0.145f, 0.360f, 4);
     }
 }

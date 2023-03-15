@@ -21,15 +21,16 @@ public class EasyToDoSettingsWindow : EditorWindow
 
 
     [MenuItem(MENU_PATH_OPEN + " " + WINDOW_KEY_SETTINGS_OPEN)]
-    private static void OpenWindow()
+    public static void OpenWindow()
     {
+        EasyToDoWindow.CloseWindow();
         var window = GetWindow<EasyToDoSettingsWindow>();
         window.titleContent = new GUIContent(TITLE_CONTENT);
         Utility.CenterWindow(window, WIDTH, HEIGHT);
     }
 
     [MenuItem(MENU_PATH_CLOSE + " " + WINDOW_KEY_SETTINGS_CLOSE)]
-    private static void CloseWindow()
+    public static void CloseWindow()
     {
         EasyToDoSettingsWindow window = EditorWindow.GetWindow<EasyToDoSettingsWindow>();
         window.Close();
@@ -65,11 +66,16 @@ public class EasyToDoSettingsWindow : EditorWindow
         {
             string json = File.ReadAllText(_settingsPath);
             _settings = JsonUtility.FromJson<EasyToDoSettings>(json);
+
+            Debug.Log("Loaded Settings: " + json); // ! remove
         }
         else
         {
             _settings = new EasyToDoSettings();
+
+            Debug.Log("New Settings!"); // ! remove
         }
+
 
         return _settings;
     }
@@ -87,5 +93,7 @@ public class EasyToDoSettingsWindow : EditorWindow
         string json = JsonUtility.ToJson(_settings, true);
 
         File.WriteAllText(_settingsPath, json);
+
+        Debug.Log("Saved Settings: " + json); // ! remove
     }
 }

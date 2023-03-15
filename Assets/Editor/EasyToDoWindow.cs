@@ -22,6 +22,7 @@ public class EasyToDoWindow : EditorWindow
     [MenuItem(MENU_PATH_OPEN + " " + WINDOW_KEY_OPEN)]
     public static void OpenWindow()
     {
+        EasyToDoSettingsWindow.CloseWindow();
         var window = GetWindow<EasyToDoWindow>();
         window.titleContent = new GUIContent(TITLE_CONTENT);
         Utility.CenterWindow(window, WIDTH, HEIGHT);
