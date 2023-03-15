@@ -17,6 +17,7 @@ public class EasyToDoSettingsWindow : EditorWindow
     private const float HEIGHT = 600f;
     private static EasyToDoSettings _settings;
     private static string _settingsPath;
+    private static Texture2D _boxTexture;
 
 
     [MenuItem(MENU_PATH_OPEN + " " + WINDOW_KEY_SETTINGS_OPEN)]
@@ -36,6 +37,7 @@ public class EasyToDoSettingsWindow : EditorWindow
 
     private void OnEnable()
     {
+        _boxTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/box.PNG");
         LoadSettings();
     }
 
@@ -47,7 +49,9 @@ public class EasyToDoSettingsWindow : EditorWindow
     private void OnGUI()
     {
         _settings.backgroundColor = EditorGUILayout.ColorField("Background Color", _settings.backgroundColor);
+        _settings.navbarColor = EditorGUILayout.ColorField("Navbar Color", _settings.navbarColor);
     }
+
 
     /// <summary>
     /// Load settings from local data file.

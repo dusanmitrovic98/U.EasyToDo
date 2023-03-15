@@ -47,21 +47,47 @@ public class Utility
     }
 
     /// <summary>
-    /// Sets background texture for specified editor window.
+    /// Draw box UI.
     /// </summary>
-    /// <param name="window">Editor window which background texture will be set.</param>
-    /// <param name="texture">Texture to be set.</param>
-    /// <param name="scaleMode">Scale mode to draw texture with.</param>
-    public static void SetBackgroundTexture(EditorWindow window, Texture2D texture, ScaleMode scaleMode)
+    /// <param name="rect">Box position.</param>
+    public static void Box(Rect rect)
     {
-        if (window == null)
-        {
-            return;
-        }
+        GUI.Box(rect, GUIContent.none);
+    }
 
-        GUILayout.BeginArea(new Rect(0, 0, window.position.width, window.position.height));
-        GUI.DrawTexture(new Rect(0, 0, window.position.width, window.position.height), texture, scaleMode);
-        GUILayout.EndArea();
+    /// <summary>
+    /// Draw box UI.
+    /// </summary>
+    /// <param name="rect">Box position.</param>
+    /// <param name="color">Box color.</param>
+    public static void Box(Rect rect, Color color)
+    {
+        GUI.color = color;
+        GUI.Box(rect, GUIContent.none);
+        GUI.color = Color.white;
+    }
+
+    /// <summary>
+    /// Draw box UI.
+    /// </summary>
+    /// <param name="rect">Box position.</param>
+    /// <param name="text">Box text.</param>
+    public static void Box(Rect rect, string text)
+    {
+        GUI.Box(rect, text);
+    }
+
+    /// <summary>
+    /// Draw box UI.
+    /// </summary>
+    /// <param name="rect">Box position.</param>
+    /// <param name="text">Box text.</param>
+    /// <param name="color">Box color.</param>
+    public static void Box(Rect rect, string text, Color color)
+    {
+        GUI.color = color;
+        GUI.Box(rect, text);
+        GUI.color = Color.white;
     }
 
     /// <summary>
@@ -71,7 +97,7 @@ public class Utility
     /// <param name="content">Box content.</param>
     public static void Box(Rect rect, GUIContent content)
     {
-        GUI.Box(rect, GUIContent.none);
+        GUI.Box(rect, content);
     }
 
     /// <summary>
@@ -83,7 +109,7 @@ public class Utility
     public static void Box(Rect rect, GUIContent content, Color color)
     {
         GUI.color = color;
-        GUI.Box(rect, GUIContent.none);
+        GUI.Box(rect, content);
         GUI.color = Color.white;
     }
 
@@ -92,7 +118,7 @@ public class Utility
     /// </summary>
     /// <param name="position">Textured box position.</param>
     /// <param name="texture">Textured box texture.</param>
-    public static void TexturedBox(Rect position, Texture2D texture)
+    public static void Box(Rect position, Texture2D texture)
     {
         GUI.DrawTexture(position, texture, ScaleMode.StretchToFill, true);
     }
@@ -103,7 +129,7 @@ public class Utility
     /// <param name="rect">Textured box position.</param>
     /// <param name="texture">Textured box texture.</param>
     /// <param name="color">Textured box color.</param>
-    public static void TextureBox(Rect rect, Texture2D texture, Color color)
+    public static void Box(Rect rect, Texture2D texture, Color color)
     {
         if (texture != null)
         {

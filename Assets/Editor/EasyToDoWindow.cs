@@ -14,7 +14,9 @@ public class EasyToDoWindow : EditorWindow
     private const string TITLE_CONTENT = "EasyToDo";
     private const float WIDTH = 350f;
     private const float HEIGHT = 600f;
+    private const float NAVBAR_HEIGHT = 40f;
     private EasyToDoSettings _settings;
+    private static Texture2D _boxTexture;
 
 
     [MenuItem(MENU_PATH_OPEN + " " + WINDOW_KEY_OPEN)]
@@ -34,6 +36,7 @@ public class EasyToDoWindow : EditorWindow
 
     private void OnEnable()
     {
+        _boxTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/box.PNG");
         _settings = EasyToDoSettingsWindow.LoadSettings();
     }
 
@@ -44,6 +47,8 @@ public class EasyToDoWindow : EditorWindow
 
     private void OnGUI()
     {
-        Utility.SetBackgroundColor(EditorWindow.GetWindow<EasyToDoWindow>(), _settings.backgroundColor);
+        var window = EditorWindow.GetWindow<EasyToDoWindow>();
+        Utility.Box(new Rect(0, 0, window.position.width, window.position.height), _boxTexture, _settings.backgroundColor);
+        Utility.Box(new Rect(0, 0, window.position.width, NAVBAR_HEIGHT), _boxTexture, _settings.navbarColor);
     }
 }
