@@ -5,16 +5,53 @@ using System.IO;
 /// <summary>
 /// Manages all the ToDo lists and provides methods to add, remove, and serialize/deserialize ToDo lists.
 /// </summary>
-public class ToDoManager : MonoBehaviour
+[System.Serializable]
+public class ToDoManager
 {
-    public List<ToDoList> lists;
+    [SerializeField] private List<ToDoList> _lists;
+
+    public List<ToDoList> Lists
+    {
+        get { return this._lists; }
+        set { this._lists = value; }
+    }
+
+    public ToDoManager()
+    {
+        _lists = new List<ToDoList>();
+        AddList();
+    }
+
+    /// <summary>
+    /// Gives count of all lists managed by this manager.
+    /// </summary>
+    /// <returns>Lists count.</returns>
+    public int Count()
+    {
+        return _lists.Count;
+    }
+
+    /// <summary>
+    /// Count of tasks of specific list under desired index.
+    /// </summary>
+    /// <param name="index">Index of needed list.</param>
+    /// <returns>Targeted list tasks count. If index is out of bounds -1.</returns>
+    public int CountByIndex(int index)
+    {
+        if (index >= 0 && index < _lists.Count)
+        {
+            return _lists[index].Tasks.Count;
+        }
+
+        return -1;
+    }
 
     /// <summary>
     /// Add a new ToDo list
     /// </summary>
     public void AddList()
     {
-        lists.Add(new ToDoList());
+        _lists.Add(new ToDoList());
     }
 
     /// <summary>
@@ -23,10 +60,21 @@ public class ToDoManager : MonoBehaviour
     /// <param name="index">Index of list to be removed</param>
     public void RemoveList(int index)
     {
-        if (index >= 0 && index < lists.Count)
+        if (index >= 0 && index < _lists.Count)
         {
-            lists.RemoveAt(index);
+            _lists.RemoveAt(index);
         }
+    }
+
+    /// <summary>
+    /// Retrieves task from targeted list with targeted index.
+    /// </summary>
+    /// <param name="listIndex">Targeted list index.</param>
+    /// <param name="taskIndex">Targeted task index.</param>
+    /// <returns></returns>
+    public Task GetTask(int listIndex, int taskIndex)
+    {
+        return _lists[listIndex].Tasks[taskIndex];
     }
 
     /// <summary>
@@ -36,9 +84,9 @@ public class ToDoManager : MonoBehaviour
     /// <param name="taskName">New task name</param>
     public void AddTask(int listIndex, string taskName)
     {
-        if (listIndex >= 0 && listIndex < lists.Count)
+        if (listIndex >= 0 && listIndex < _lists.Count)
         {
-            lists[listIndex].tasks.Add(new Task(taskName, false));
+            _lists[listIndex].Tasks.Add(new Task(taskName, false));
         }
     }
 
@@ -49,9 +97,9 @@ public class ToDoManager : MonoBehaviour
     /// <param name="taskIndex">Index of the task which will be removed</param>
     public void RemoveTask(int listIndex, int taskIndex)
     {
-        if (listIndex >= 0 && listIndex < lists.Count && taskIndex >= 0 && taskIndex < lists[listIndex].tasks.Count)
+        if (listIndex >= 0 && listIndex < _lists.Count && taskIndex >= 0 && taskIndex < _lists[listIndex].Tasks.Count)
         {
-            lists[listIndex].tasks.RemoveAt(taskIndex);
+            _lists[listIndex].Tasks.RemoveAt(taskIndex);
         }
     }
 
@@ -81,18 +129,30 @@ public class ToDoManager : MonoBehaviour
     {
         string json = Serialize();
         File.WriteAllText(filePath, json);
+
+        Logger.Log("Saved Data: " + json);
     }
 
     /// <summary>
     /// Load the ToDo lists from a file
     /// </summary>
     /// <param name="filePath">File path from which to load local data</param>
-    public void LoadFromFile(string filePath)
+    public ToDoManager LoadFromFile(string filePath)
     {
         if (File.Exists(filePath))
         {
             string json = File.ReadAllText(filePath);
             Deserialize(json);
+
+            Logger.Log("Loaded Data: " + json);
+
+            return this;
+        }
+        else
+        {
+            Logger.Log("Generated New Data File.");
+
+            return new ToDoManager();
         }
     }
 }

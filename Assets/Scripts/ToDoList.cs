@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 /// <summary>
 /// Represents a list of ToDo tasks and stores a list of ToDo objects.
@@ -6,5 +7,16 @@ using System.Collections.Generic;
 [System.Serializable]
 public class ToDoList
 {
-    public List<Task> tasks;
+    [SerializeField] private List<Task> _tasks;
+
+    public List<Task> Tasks
+    {
+        get { return _tasks; }
+        set { _tasks = value; }
+    }
+
+    public ToDoList()
+    {
+        this._tasks = new List<Task>();
+    }
 }

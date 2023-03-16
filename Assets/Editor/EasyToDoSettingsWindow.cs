@@ -9,9 +9,11 @@ public class EasyToDoSettingsWindow : EditorWindow
 {
     private const string SETTINGS_FILE_NAME = "/EasyToDoSettings.json";
     private const string MENU_PATH_OPEN = "Window/EasyToDo/Settings";
+    private const string MENU_PATH_DELETE_SETTINGS_FILE = "Window/EasyToDo/Delete Settings File";
     private const string MENU_PATH_CLOSE = "Window/EasyToDo/Close Settings";
     private const string WINDOW_KEY_SETTINGS_OPEN = "%&w";
     private const string WINDOW_KEY_SETTINGS_CLOSE = "%&q";
+    private const string WINDOW_KEY_DELETE_SETTINGS_FILE = "%&d";
     private const string TITLE_CONTENT = "EasyToDo Settings";
     private const float WIDTH = 400f;
     private const float HEIGHT = 600f;
@@ -49,8 +51,28 @@ public class EasyToDoSettingsWindow : EditorWindow
 
     private void OnGUI()
     {
-        _settings.backgroundColor = EditorGUILayout.ColorField("Background Color", _settings.backgroundColor);
-        _settings.navbarColor = EditorGUILayout.ColorField("Navbar Color", _settings.navbarColor);
+        GUILayout.Space(10f);
+        _settings.BackgroundColor = EditorGUILayout.ColorField("Background Color:", _settings.BackgroundColor);
+        GUILayout.Space(10f);
+        _settings.NavbarColor = EditorGUILayout.ColorField("Navbar Color:", _settings.NavbarColor);
+        GUILayout.Space(10f);
+        _settings.MenuIconColor = EditorGUILayout.ColorField("Menu Icon Color", _settings.MenuIconColor);
+        GUILayout.Space(10f);
+        _settings.NewTaskFormTextColorNormal = EditorGUILayout.ColorField("Form Text Normal Color:", _settings.NewTaskFormTextColorNormal);
+        GUILayout.Space(10f);
+        _settings.NewTaskFormTextColorFocused = EditorGUILayout.ColorField("Form Text Focused Color:", _settings.NewTaskFormTextColorFocused);
+        GUILayout.Space(10f);
+        _settings.NewTaskFormBackgroundColor = EditorGUILayout.ColorField("Form Background Color:", _settings.NewTaskFormBackgroundColor);
+        GUILayout.Space(10f);
+        _settings.NewTaskFormBackgroundIconColor = EditorGUILayout.ColorField("Add Task Icon Color:", _settings.NewTaskFormBackgroundIconColor);
+        GUILayout.Space(10f);
+        _settings.NewTaskPlaceholderColor = EditorGUILayout.ColorField("Placeholder Color:", _settings.NewTaskPlaceholderColor);
+        GUILayout.Space(10f);
+    }
+
+    private static EasyToDoSettingsWindow GetCurrentWindow()
+    {
+        return EditorWindow.GetWindow<EasyToDoSettingsWindow>();
     }
 
 
@@ -67,15 +89,14 @@ public class EasyToDoSettingsWindow : EditorWindow
             string json = File.ReadAllText(_settingsPath);
             _settings = JsonUtility.FromJson<EasyToDoSettings>(json);
 
-            Debug.Log("Loaded Settings: " + json); // ! remove
+            Logger.Log("Loaded Settings: " + json, Color.red);
         }
         else
         {
             _settings = new EasyToDoSettings();
 
-            Debug.Log("New Settings!"); // ! remove
+            Logger.Log("Generated New Settings File.");
         }
-
 
         return _settings;
     }
@@ -94,6 +115,32 @@ public class EasyToDoSettingsWindow : EditorWindow
 
         File.WriteAllText(_settingsPath, json);
 
-        Debug.Log("Saved Settings: " + json); // ! remove
+        AssetDatabase.Refresh();
+
+        Logger.Log("Saved Settings: " + json);
+    }
+
+    /// <summary>
+    /// Deletes the EasyToDoSettings.json file if it exists.
+    /// </summary>
+    [MenuItem(MENU_PATH_DELETE_SETTINGS_FILE + " " + WINDOW_KEY_DELETE_SETTINGS_FILE)]
+    public static void DeleteSettingsFile()
+    {
+        string filePath = Application.dataPath + SETTINGS_FILE_NAME;
+        string fileMetaPath = Application.dataPath + SETTINGS_FILE_NAME + ".meta";
+
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
+
+        if (File.Exists(fileMetaPath))
+        {
+            File.Delete(fileMetaPath);
+        }
+
+        AssetDatabase.Refresh();
+
+        Logger.Log("Deleted Settings File.");
     }
 }

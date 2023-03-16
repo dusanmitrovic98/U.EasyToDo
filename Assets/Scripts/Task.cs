@@ -1,11 +1,12 @@
+using UnityEngine;
 /// <summary>
 /// Represents a single task and stores its name and completion status.
 /// </summary>
 [System.Serializable]
 public class Task
 {
-    private string _name;
-    private bool _completed;
+    [SerializeField] private string _name;
+    [SerializeField] private bool _completed;
 
     public string Name
     {

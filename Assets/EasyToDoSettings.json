@@ -1,15 +1,65 @@
 {
-    "showCompletedTasks": true,
-    "backgroundColor": {
+    "_currentListIndex": 0,
+    "_showCompletedTasks": true,
+    "_enableLogging": true,
+    "_backgroundColor": {
         "r": 0.210999995470047,
         "g": 0.2070000022649765,
         "b": 0.41999998688697817,
         "a": 4.0
     },
-    "navbarColor": {
+    "_navbarColor": {
         "r": 0.14900000393390656,
         "g": 0.14499999582767487,
         "b": 0.36000001430511477,
         "a": 4.0
+    },
+    "_menuIconColor": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+    },
+    "_newTaskFormTextColorNormal": {
+        "r": 0.6000000238418579,
+        "g": 0.4000000059604645,
+        "b": 0.800000011920929,
+        "a": 1.0
+    },
+    "_newTaskFormTextColorFocused": {
+        "r": 0.36000001430511477,
+        "g": 0.03999999910593033,
+        "b": 0.5799999833106995,
+        "a": 1.0
+    },
+    "_newTaskFormBackgroundColor": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+    },
+    "_newTaskFormBackgroundIconColor": {
+        "r": 0.5199999809265137,
+        "g": 0.49000000953674319,
+        "b": 0.6100000143051148,
+        "a": 1.0
+    },
+    "_newTaskPlaceholderColor": {
+        "r": 0.5600000023841858,
+        "g": 0.5299999713897705,
+        "b": 0.6499999761581421,
+        "a": 1.0
+    },
+    "_taskStatusInactiveOuterCircleColor": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+    },
+    "_deleteTaskButtonColor": {
+        "r": 0.1599999964237213,
+        "g": 0.1599999964237213,
+        "b": 0.3700000047683716,
+        "a": 1.0
     }
 }
