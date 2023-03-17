@@ -11,6 +11,8 @@ public class EasyToDoSettings
     [SerializeField] private bool _showCompletedTasks;
     // Console Logs
     [SerializeField] private bool _enableLogging;
+    // Lists view
+    [SerializeField] private bool _animateListsView;
     // Background
     [SerializeField] private Color _backgroundColor;
     // Navbar
@@ -25,6 +27,8 @@ public class EasyToDoSettings
     [SerializeField] private Color _newTaskPlaceholderColor;
     // Task View
     [SerializeField] private Color _taskStatusInactiveOuterCircleColor;
+    [SerializeField] private Color _taskStatusActiveOuterCircleColor;
+    [SerializeField] private Color _taskStatusActiveCheckmarkColor;
     [SerializeField] private Color _deleteTaskButtonColor;
 
     public int CurrentListIndex
@@ -43,6 +47,12 @@ public class EasyToDoSettings
     {
         get { return this._enableLogging; }
         set { this._enableLogging = value; }
+    }
+
+    public bool AnimateListsView
+    {
+        get { return this._animateListsView; }
+        set { this._animateListsView = value; }
     }
 
     public Color BackgroundColor
@@ -99,6 +109,18 @@ public class EasyToDoSettings
         set { this._taskStatusInactiveOuterCircleColor = value; }
     }
 
+    public Color TaskStatusActiveOuterCircleColor
+    {
+        get { return this._taskStatusActiveOuterCircleColor; }
+        set { this._taskStatusActiveOuterCircleColor = value; }
+    }
+
+    public Color TaskStatusActiveCheckmarkColor
+    {
+        get { return this._taskStatusActiveCheckmarkColor; }
+        set { this._taskStatusActiveCheckmarkColor = value; }
+    }
+
     public Color DeleteTaskButtonColor
     {
         get { return this._deleteTaskButtonColor; }
@@ -111,6 +133,8 @@ public class EasyToDoSettings
         _currentListIndex = 0;
         // Task Status
         _showCompletedTasks = true;
+        // Lists view
+        _animateListsView = true;
         // Console Logs
         _enableLogging = true;
         // Background
@@ -126,8 +150,9 @@ public class EasyToDoSettings
         _newTaskFormBackgroundIconColor = new Color(0.52f, 0.49f, 0.61f);
         _newTaskPlaceholderColor = new Color(0.56f, 0.53f, 0.65f);
         // Task View
-        // _taskStatusInactiveOuterCircleColor = new Color(0.50f, 0.40f, 0.60f);
         _taskStatusInactiveOuterCircleColor = Color.white;
-        _deleteTaskButtonColor = new Color(0.16f, 0.16f, 0.37f);
+        _taskStatusActiveOuterCircleColor = new Color(0.84f, 0.98f, 0.81f);
+        _taskStatusActiveCheckmarkColor = new Color(0.16f, 0.55f, 0.32f);
+        _deleteTaskButtonColor = new Color(0.16f, 0.16f, 0.37f); //Checkmark 
     }
 }

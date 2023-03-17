@@ -337,6 +337,7 @@ public class Utility
         style.fontStyle = fontStyle;
         style.wordWrap = wordWrap;
         style.alignment = TextAnchor.MiddleLeft;
+        style.richText = true;
 
         return style;
     }

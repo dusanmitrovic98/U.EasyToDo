@@ -1,11 +1,10 @@
-using System;
-using System.Collections;
-using System.IO;
 using UnityEditor;
 using UnityEngine;
+using System.IO;
+using System;
 
 /// <summary>
-/// Main editor window for EasyToDo.  
+/// Main editor window for EasyToDo. 
 /// </summary>
 
 public class EasyToDoWindow : EditorWindow
@@ -22,11 +21,16 @@ public class EasyToDoWindow : EditorWindow
     private const float WIDTH = 350f;
     private const float HEIGHT = 600f;
     private const float NAVBAR_HEIGHT = 40f;
-    private const float TASK_LIST_OFFSET = 105f;
+    private const float TASK_LIST_OFFSET = 5f;
+    private const float LIST_VIEW_ANIMATION_FREQUENCY = 0.5f;
+    private static float _listViewHeight = 0f;
     private EasyToDoSettings _settings;
     private static Texture2D _boxTexture;
+    private static Texture2D _buttonIconRounded;
     private static Texture2D _circleTexture;
+    private static Texture2D _checkmarkTexture;
     private static Texture2D _menuIconTexture;
+    private static Texture2D _menuIconTexture90;
     private static Texture2D _plusIconTexture;
     private static Texture2D _minusIconTexture;
     private static string _newTaskName = "";
@@ -36,6 +40,8 @@ public class EasyToDoWindow : EditorWindow
     private static Rect _newTaskFormPosition = new Rect(48f, 50f, 56f, 40f);
     private static ToDoManager _manager = new ToDoManager();
     private static int _indexTaskToDelete = -1;
+    private static bool _toggleListMenu = false;
+    public Vector2 scrollPosition = Vector2.zero;
 
     [MenuItem(MENU_PATH_OPEN + " " + WINDOW_KEY_OPEN)]
     public static void OpenWindow()
@@ -56,14 +62,21 @@ public class EasyToDoWindow : EditorWindow
     private void OnEnable()
     {
         _boxTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/Box.PNG");
+        _buttonIconRounded = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/ButtonIconRounded.PNG");
         _circleTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/CircleIcon.PNG");
+        _checkmarkTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/CheckmarkIcon.PNG");
         _menuIconTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/MenuIconLight.PNG");
+        _menuIconTexture90 = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/MenuIconLight90.PNG");
         _plusIconTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/PlusIcon.PNG");
         _minusIconTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/MinusIcon.PNG");
         _settings = EasyToDoSettingsWindow.LoadSettings();
         LoadData();
 
-        ConfigureLogging();
+        if (_settings.EnableLogging)
+        {
+            Logger.EnableLogging();
+        }
+
     }
 
     private void OnDisable()
@@ -79,14 +92,14 @@ public class EasyToDoWindow : EditorWindow
         DrawBackground(window);
         // Navbar
         DrawNavbar(window);
-        // Menu Button
-        DrawMenuButton();
         // New Task Form
         DrawNewTaskFormInput(window);
         // Add Task Button
         DrawAddTaskButton();
         // Task List
         DrawTaskList(window);
+        // Lists View
+        DrawListsView(window);
 
         Utility.RemoveFocus();
     }
@@ -97,25 +110,18 @@ public class EasyToDoWindow : EditorWindow
     }
 
     /// <summary>
-    /// Depending on settings it will enable or disable console logs.
-    /// </summary>
-    private void ConfigureLogging()
-    {
-        if (!_settings.EnableLogging)
-        {
-            return;
-        }
-
-        Logger.EnableLogging();
-    }
-
-    /// <summary>
     /// Toggles between ToDo lists and selected list views.
     /// </summary>
     private void ToggleListMenu()
     {
-        // todo implement.
-        Debug.Log("ToggleListMenu");
+        if (_toggleListMenu)
+        {
+            _toggleListMenu = false;
+
+            return;
+        }
+
+        _toggleListMenu = true;
     }
 
     /// <summary>
@@ -142,11 +148,26 @@ public class EasyToDoWindow : EditorWindow
     private void DrawNavbar(EditorWindow window)
     {
         Utility.Box(new Rect(0, 0, window.position.width, NAVBAR_HEIGHT), _boxTexture, _settings.NavbarColor);
+
+        // Menu Button
+        DrawMenuButton();
     }
 
     private void DrawMenuButton()
     {
-        Utility.Button(_menuButtonPosition, _menuIconTexture, _settings.MenuIconColor, ToggleListMenu);
+        var texture = GetMenuButtonTexture();
+
+        Utility.Button(_menuButtonPosition, texture, _settings.MenuIconColor, ToggleListMenu);
+    }
+
+    private Texture2D GetMenuButtonTexture()
+    {
+        if (_toggleListMenu)
+        {
+            return _menuIconTexture90;
+        }
+
+        return _menuIconTexture;
     }
 
     private void DrawNewTaskFormInput(EasyToDoWindow window)
@@ -159,6 +180,13 @@ public class EasyToDoWindow : EditorWindow
 
     private void DrawAddTaskButton()
     {
+        if (Event.current.type == EventType.KeyUp && Event.current.keyCode == KeyCode.Return)
+        {
+            AddNewTask();
+
+            Logger.Log("Task created with name: " + _newTaskName);
+        }
+
         Utility.Button(_addTaskButtonPosition, _boxTexture, _settings.NewTaskFormBackgroundColor, AddNewTask);
         Utility.Button(_addTaskButtonIconPosition, _plusIconTexture, _settings.NewTaskFormBackgroundIconColor, () => { });
     }
@@ -190,11 +218,23 @@ public class EasyToDoWindow : EditorWindow
     /// </summary>
     private void DrawTaskList(EditorWindow window)
     {
-
+        GUILayout.Space(100f);
+        scrollPosition = GUILayout.BeginScrollView(
+            scrollPosition, GUILayout.Height(window.position.height - 100f));
         for (int i = 0; i < _manager.CountByIndex(_settings.CurrentListIndex); i++)
         {
             DrawTask(window, i);
+            GUILayout.Space(40f);
         }
+        GUILayout.EndScrollView();
+    }
+
+    /// <summary>
+    /// Completed tasks have their line go out of bounds because CalcSize calculates it wrongly. This is helper function to hide that overflow.
+    /// </summary>
+    private void DrawTaskListCorrectionBox(EditorWindow window)
+    {
+        Utility.Box(new Rect(window.position.width - 50f, TASK_LIST_OFFSET, 50f, window.position.height - TASK_LIST_OFFSET), _boxTexture, _settings.BackgroundColor);
     }
 
     /// <summary>h
@@ -206,6 +246,7 @@ public class EasyToDoWindow : EditorWindow
         DrawTaskStatus(window, index);
         DrawTaskName(window, index);
         DrawTaskDeleteButton(window, index);
+
     }
 
     /// <summary>
@@ -228,10 +269,12 @@ public class EasyToDoWindow : EditorWindow
 
         if ((bool)GetTaskStatus(index))
         {
-            Utility.Button(position, _circleTexture, Color.green, () =>
+            Utility.Button(position, _circleTexture, _settings.TaskStatusActiveOuterCircleColor, () =>
             {
                 GetTask(index).Completed = false;
             });
+
+            Utility.Box(position, _checkmarkTexture, _settings.TaskStatusActiveCheckmarkColor);
 
             return;
         }
@@ -240,6 +283,8 @@ public class EasyToDoWindow : EditorWindow
         {
             GetTask(index).Completed = true;
         });
+
+
     }
 
     /// <summary>
@@ -260,11 +305,23 @@ public class EasyToDoWindow : EditorWindow
         var margins = new Vector4(0, 0, 0, 0);
 
         var text = GetTask(index).Name;
+
         if ((bool)GetTaskStatus(index))
         {
-
+            GUI.enabled = false;
         }
+
         GetTask(index).Name = Utility.TexturedStringField(_settings.BackgroundColor, position, _boxTexture, style, margins, text);
+        position.x = 52f;
+        position.y = TASK_LIST_OFFSET + (index * 40f) + 16f;
+        position.width = GUI.skin.textField.CalcSize(new GUIContent(text)).x * 1.2f;
+        position.height = 1f;
+        if ((bool)GetTaskStatus(index))
+        {
+            Utility.Box(position, _boxTexture, Color.grey);
+            Utility.Box(new Rect(window.position.width - 50f, TASK_LIST_OFFSET + (index * 40f), 50f, 30f), _boxTexture, _settings.BackgroundColor);
+            GUI.enabled = true;
+        }
     }
 
     /// <summary>
@@ -274,7 +331,7 @@ public class EasyToDoWindow : EditorWindow
     /// <param name="index">>Targeted task index.</param>
     private void DrawTaskDeleteButton(EditorWindow window, int index)
     {
-        float x = window.position.width - 42f;
+        float x = window.position.width - 43f;
         float y = TASK_LIST_OFFSET + (index * 40f);
         float width = 29f;
         float height = 29f;
@@ -288,6 +345,30 @@ public class EasyToDoWindow : EditorWindow
         Utility.Box(position, _minusIconTexture, Color.white);
 
         window.Repaint();
+    }
+
+    /// <summary>
+    /// Draws ToDoLists view UI.
+    /// </summary>
+    /// <param name="window">Parent window.</param>
+    private void DrawListsView(EasyToDoWindow window)
+    {
+        // Background
+        // if (!_toggleListMenu)
+        // {
+        //     return;
+        // }
+
+        if (_toggleListMenu && _listViewHeight <= window.position.height - 40f)
+        {
+            _listViewHeight += LIST_VIEW_ANIMATION_FREQUENCY;
+        }
+        else if (!_toggleListMenu && _listViewHeight >= 0)
+        {
+            _listViewHeight -= LIST_VIEW_ANIMATION_FREQUENCY;
+        }
+
+        Utility.Box(new Rect(0, NAVBAR_HEIGHT, window.position.width, _listViewHeight), _boxTexture, _settings.BackgroundColor);
     }
 
     /// <summary>
