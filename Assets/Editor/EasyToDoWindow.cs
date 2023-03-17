@@ -13,9 +13,11 @@ public class EasyToDoWindow : EditorWindow
     private const string DATA_FILE_NAME = "/EasyToDoData.json";
     private const string MENU_PATH_OPEN = "Window/EasyToDo/Open";
     private const string MENU_PATH_CLOSE = "Window/EasyToDo/Close";
+    private const string MENU_PATH_TOGGLE = "Window/EasyToDo/Toggle Menu";
     private const string MENU_PATH_DELETE_DATA_FILE = "Window/EasyToDo/Delete Data File";
     private const string WINDOW_KEY_OPEN = "%#w";
     private const string WINDOW_KEY_CLOSE = "%#q";
+    private const string WINDOW_KEY_TOGGLE_MENU = "%m";
     private const string WINDOW_KEY_DELETE_DATA_FILE = "%#d";
     private const string TITLE_CONTENT = "EasyToDo";
     private const string _placeholderText = "Add Task ...";
@@ -26,10 +28,11 @@ public class EasyToDoWindow : EditorWindow
     private const float LISTS_CARDS_OFFSET = 10f;
     private const float TASK_LIST_OFFSET = 5f;
     private const float LIST_VIEW_ANIMATION_FREQUENCY = 1f;
+    private const float MENU_TOGGLE_VIEW_ANIMATION_SPEED = 0.001f;
     private static float _listViewHeight = 0f;
-    private static float _footerPosition = NAVBAR_HEIGHT;
+    private static float _footerPosition = 0;
     private static float _footerHeight = NAVBAR_HEIGHT;
-    private EasyToDoSettings _settings;
+    private static EasyToDoSettings _settings;
     private static Texture2D _boxTexture;
     private static Texture2D _buttonIconRounded;
     private static Texture2D _circleTexture;
@@ -46,7 +49,7 @@ public class EasyToDoWindow : EditorWindow
     private static ToDoManager _manager = new ToDoManager();
     private static int _indexTaskToDelete = -1;
     private static bool _toggleListMenu = false;
-    public Vector2 scrollPosition = Vector2.zero;
+    public static Vector2 scrollPosition = Vector2.zero;
     private static FixedUpdate _listsViewFixedUpdate;
 
     [MenuItem(MENU_PATH_OPEN + " " + WINDOW_KEY_OPEN)]
@@ -63,6 +66,12 @@ public class EasyToDoWindow : EditorWindow
     {
         EasyToDoWindow window = EditorWindow.GetWindow<EasyToDoWindow>();
         window.Close();
+    }
+
+    [MenuItem(MENU_PATH_TOGGLE + " " + WINDOW_KEY_TOGGLE_MENU)]
+    public static void ToggleMenu()
+    {
+        ToggleListMenu();
     }
 
     private void OnEnable()
@@ -90,7 +99,7 @@ public class EasyToDoWindow : EditorWindow
         }
 
         // Fixed Update Actions
-        _listsViewFixedUpdate.TickFrequency = 0.01f;
+        _listsViewFixedUpdate.TickFrequency = MENU_TOGGLE_VIEW_ANIMATION_SPEED;
 
         _listsViewFixedUpdate.Push(() =>
         {
@@ -112,8 +121,6 @@ public class EasyToDoWindow : EditorWindow
         var window = GetCurrentWindow();
         // Background
         DrawBackground(window);
-        // Navbar
-        DrawNavbar(window);
         // New Task Form
         DrawNewTaskFormInputGroup(window);
         // Add Task Button
@@ -122,6 +129,8 @@ public class EasyToDoWindow : EditorWindow
         DrawTaskList(window);
         // Lists View
         DrawListsView(window);
+        // Navbar
+        DrawNavbar(window);
 
         Utility.RemoveFocus();
     }
@@ -134,7 +143,7 @@ public class EasyToDoWindow : EditorWindow
     /// <summary>
     /// Toggles between ToDo lists and selected list views.
     /// </summary>
-    private void ToggleListMenu()
+    private static void ToggleListMenu()
     {
         if (_toggleListMenu)
         {
@@ -149,7 +158,7 @@ public class EasyToDoWindow : EditorWindow
     /// <summary>
     /// Add new task to currently selected ToDo list.
     /// </summary>
-    private void AddNewTask()
+    private static void AddNewTask()
     {
         Logger.Log("Added task: " + _newTaskName);
         _manager.AddTask(_settings.CurrentListIndex, _newTaskName);
@@ -169,7 +178,7 @@ public class EasyToDoWindow : EditorWindow
     /// Draws background.
     /// </summary>
     /// <param name="window"></param>
-    private void DrawBackground(EasyToDoWindow window)
+    private static void DrawBackground(EasyToDoWindow window)
     {
         Utility.Box(new Rect(0, 0, window.position.width, window.position.height), _boxTexture, _settings.BackgroundColor);
     }
@@ -178,7 +187,7 @@ public class EasyToDoWindow : EditorWindow
     /// Draws navbar UI element.
     /// </summary>
     /// <param name="window">Parent editor window.</param>
-    private void DrawNavbar(EditorWindow window)
+    private static void DrawNavbar(EditorWindow window)
     {
         Utility.Box(new Rect(0, 0, window.position.width, NAVBAR_HEIGHT), _boxTexture, _settings.NavbarColor);
 
@@ -189,7 +198,7 @@ public class EasyToDoWindow : EditorWindow
     /// <summary>
     /// Draws menu button UI element.
     /// </summary>
-    private void DrawMenuButton()
+    private static void DrawMenuButton()
     {
         var texture = GetMenuButtonTexture();
 
@@ -200,7 +209,7 @@ public class EasyToDoWindow : EditorWindow
     /// Gets menu button texture depending if menu is open (button clicked) or closed.
     /// </summary>
     /// <returns></returns>
-    private Texture2D GetMenuButtonTexture()
+    private static Texture2D GetMenuButtonTexture()
     {
         if (_toggleListMenu)
         {
@@ -214,7 +223,7 @@ public class EasyToDoWindow : EditorWindow
     /// Draws new task input form group UI element.
     /// </summary>
     /// <param name="window">Parent window.</param>
-    private void DrawNewTaskFormInputGroup(EasyToDoWindow window)
+    private static void DrawNewTaskFormInputGroup(EasyToDoWindow window)
     {
         var newTaskFormStyle = Utility.DefaultLabelStyle();
         Utility.StyleTextColors(newTaskFormStyle, _settings.NewTaskFormTextColorNormal, _settings.NewTaskFormTextColorFocused);
@@ -225,7 +234,7 @@ public class EasyToDoWindow : EditorWindow
     /// <summary>
     /// Draws add task button UI element.
     /// </summary>
-    private void DrawAddTaskButton()
+    private static void DrawAddTaskButton()
     {
         if (Event.current.type == EventType.KeyUp && Event.current.keyCode == KeyCode.Return)
         {
@@ -244,7 +253,7 @@ public class EasyToDoWindow : EditorWindow
     /// <param name="window">Parent window.</param>
     /// <param name="newTaskFormStyle">Form style.</param>
     /// <returns>Input value.</returns>
-    private string DrawNewTaskFormInput(EasyToDoWindow window, GUIStyle newTaskFormStyle)
+    private static string DrawNewTaskFormInput(EasyToDoWindow window, GUIStyle newTaskFormStyle)
     {
         Rect position = new Rect(_newTaskFormPosition.x, _newTaskFormPosition.y, window.position.width - _newTaskFormPosition.width, _newTaskFormPosition.height);
         Vector4 margins = new Vector4(5f, 5f, 2f, 0f);
@@ -275,7 +284,7 @@ public class EasyToDoWindow : EditorWindow
     /// <summary>
     /// Draws current task list UI element.
     /// </summary>
-    private void DrawTaskList(EditorWindow window)
+    private static void DrawTaskList(EditorWindow window)
     {
         GUILayout.Space(100f);
         scrollPosition = GUILayout.BeginScrollView(
@@ -291,7 +300,7 @@ public class EasyToDoWindow : EditorWindow
     /// <summary>
     /// Completed tasks have their line go out of bounds because CalcSize calculates it wrongly. This is helper function to hide that overflow.
     /// </summary>
-    private void DrawTaskListCorrectionBox(EditorWindow window)
+    private static void DrawTaskListCorrectionBox(EditorWindow window)
     {
         Utility.Box(new Rect(window.position.width - 50f, TASK_LIST_OFFSET, 50f, window.position.height - TASK_LIST_OFFSET), _boxTexture, _settings.BackgroundColor);
     }
@@ -300,7 +309,7 @@ public class EasyToDoWindow : EditorWindow
     /// Draws specific task wit specific index.
     /// </summary>
     /// <param name="i">Index of task to be drawn.</param>
-    private void DrawTask(EditorWindow window, int index)
+    private static void DrawTask(EditorWindow window, int index)
     {
         DrawTaskStatus(window, index);
         DrawTaskName(window, index);
@@ -312,7 +321,7 @@ public class EasyToDoWindow : EditorWindow
     /// </summary>
     /// <param name="window">Parent editor window.</param>
     /// <param name="index">Targeted task index.</param>
-    private void DrawTaskStatus(EditorWindow window, int index)
+    private static void DrawTaskStatus(EditorWindow window, int index)
     {
         if (GetTaskStatus(index) == null)
         {
@@ -348,7 +357,7 @@ public class EasyToDoWindow : EditorWindow
     /// </summary>
     /// <param name="window">Parent editor window.</param>
     /// <param name="index">>Targeted task index.</param>
-    private void DrawTaskName(EditorWindow window, int index)
+    private static void DrawTaskName(EditorWindow window, int index)
     {
         GUIStyle style = Utility.DefaultLabelStyle();
         style.fontSize = 15;
@@ -385,7 +394,7 @@ public class EasyToDoWindow : EditorWindow
     /// </summary>
     /// <param name="window">Parent editor window.</param>
     /// <param name="index">>Targeted task index.</param>
-    private void DrawTaskDeleteButton(EditorWindow window, int index)
+    private static void DrawTaskDeleteButton(EditorWindow window, int index)
     {
         float x = window.position.width - 43f;
         float y = TASK_LIST_OFFSET + (index * 40f);
@@ -407,20 +416,12 @@ public class EasyToDoWindow : EditorWindow
     /// Draws ToDoLists view UI.
     /// </summary>
     /// <param name="window">Parent window.</param>
-    private void DrawListsView(EasyToDoWindow window)
+    private static void DrawListsView(EasyToDoWindow window)
     {
         if (_listViewHeight >= 0)
         {
             Utility.Box(new Rect(0, NAVBAR_HEIGHT, window.position.width, _listViewHeight), _boxTexture, _settings.BackgroundColor);
-        }
-
-        if (_toggleListMenu)
-        {
             DrawToDoListsSelectionView(window);
-        }
-
-        if (_listViewHeight > NAVBAR_HEIGHT)
-        {
             Utility.Box(new Rect(0, _footerPosition, window.position.width, _footerHeight), _boxTexture, _settings.NavbarColor);
         }
     }
@@ -429,7 +430,7 @@ public class EasyToDoWindow : EditorWindow
     /// Updates the lists view position variables.
     /// </summary>
     /// <param name="window">Parent window.</param>
-    private void UpdateListsViewPositions(EditorWindow window)
+    private static void UpdateListsViewPositions(EditorWindow window)
     {
         if (_toggleListMenu && _listViewHeight <= (window.position.height - 40f))
         {
@@ -449,14 +450,28 @@ public class EasyToDoWindow : EditorWindow
     }
 
     /// <summary>
-    /// Draws ToDoLists selection view
+    /// Draws ToDoLists selection view.
     /// </summary>
     /// <param name="window"></param>
-    private void DrawToDoListsSelectionView(EditorWindow window)
+    private static void DrawToDoListsSelectionView(EditorWindow window)
+    {
+        if (!_toggleListMenu)
+        {
+            return;
+        }
+
+        DrawAllListsCards(window);
+    }
+
+    /// <summary>
+    /// Draws all ToDoLists cards UI elements.
+    /// </summary>
+    /// <param name="window">Parent window.</param>
+    private static void DrawAllListsCards(EditorWindow window)
     {
         var position = new Rect(10f, 0f, window.position.width - 20f, 30f);
 
-        for (int i = 0; i < /* _manager.Lists.Count */ 10; i++)
+        for (int i = 0; i < _manager.Lists.Count; i++)
         {
             position.y = (LISTS_CARDS_BEGINNING) + ((i + 1) * (position.height + LISTS_CARDS_OFFSET));
 
@@ -475,7 +490,7 @@ public class EasyToDoWindow : EditorWindow
     /// </summary>
     /// <param name="position">Card position.</param>
     /// <param name="index">List index.</param>
-    private void DrawListsCardContent(Rect position, int index)
+    private static void DrawListsCardContent(Rect position, int index)
     {
         // !
         // todo implement
@@ -484,7 +499,7 @@ public class EasyToDoWindow : EditorWindow
     /// <summary>
     /// Removes task with index of value _indexTaskToDelete. If it's value is equal to -1 does nothing.
     /// </summary>
-    private void DeleteTaskByIndex()
+    private static void DeleteTaskByIndex()
     {
         if (_indexTaskToDelete == -1)
         {
@@ -501,7 +516,7 @@ public class EasyToDoWindow : EditorWindow
     /// </summary>
     /// <param name="index">Targeted task index.</param>
     /// <returns>Task under targeted index of currently selected project.</returns>
-    private Task GetTask(int index)
+    private static Task GetTask(int index)
     {
         if (_settings.CurrentListIndex >= 0 && _settings.CurrentListIndex < _manager.Count())
         {
@@ -516,7 +531,7 @@ public class EasyToDoWindow : EditorWindow
     /// </summary>
     /// <param name="index">Targeted task index.</param>
     /// <returns>Task status under targeted index of currently selected project.</returns>
-    private bool? GetTaskStatus(int index)
+    private static bool? GetTaskStatus(int index)
     {
         if (_settings.CurrentListIndex >= 0 && _settings.CurrentListIndex < _manager.Count())
         {
