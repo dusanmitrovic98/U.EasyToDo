@@ -153,6 +153,6 @@ public class EasyToDoSettings
         _taskStatusInactiveOuterCircleColor = Color.white;
         _taskStatusActiveOuterCircleColor = new Color(0.84f, 0.98f, 0.81f);
         _taskStatusActiveCheckmarkColor = new Color(0.16f, 0.55f, 0.32f);
-        _deleteTaskButtonColor = new Color(0.16f, 0.16f, 0.37f); //Checkmark 
+        _deleteTaskButtonColor = new Color(0.16f, 0.16f, 0.37f);
     }
 }

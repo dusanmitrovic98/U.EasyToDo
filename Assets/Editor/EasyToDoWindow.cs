@@ -2,6 +2,7 @@ using UnityEditor;
 using UnityEngine;
 using System.IO;
 using System;
+using System.Collections;
 
 /// <summary>
 /// Main editor window for EasyToDo. 
@@ -21,9 +22,13 @@ public class EasyToDoWindow : EditorWindow
     private const float WIDTH = 350f;
     private const float HEIGHT = 600f;
     private const float NAVBAR_HEIGHT = 40f;
+    private const float LISTS_CARDS_BEGINNING = NAVBAR_HEIGHT - 18f;
+    private const float LISTS_CARDS_OFFSET = 10f;
     private const float TASK_LIST_OFFSET = 5f;
-    private const float LIST_VIEW_ANIMATION_FREQUENCY = 0.5f;
+    private const float LIST_VIEW_ANIMATION_FREQUENCY = 1f;
     private static float _listViewHeight = 0f;
+    private static float _footerPosition = NAVBAR_HEIGHT;
+    private static float _footerHeight = NAVBAR_HEIGHT;
     private EasyToDoSettings _settings;
     private static Texture2D _boxTexture;
     private static Texture2D _buttonIconRounded;
@@ -42,6 +47,7 @@ public class EasyToDoWindow : EditorWindow
     private static int _indexTaskToDelete = -1;
     private static bool _toggleListMenu = false;
     public Vector2 scrollPosition = Vector2.zero;
+    private static FixedUpdate _fixedUpdate;
 
     [MenuItem(MENU_PATH_OPEN + " " + WINDOW_KEY_OPEN)]
     public static void OpenWindow()
@@ -61,6 +67,10 @@ public class EasyToDoWindow : EditorWindow
 
     private void OnEnable()
     {
+        // Fixed Update
+        _fixedUpdate = ScriptableObject.CreateInstance<FixedUpdate>();
+        _fixedUpdate.Enable();
+        // Textures
         _boxTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/Box.PNG");
         _buttonIconRounded = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/ButtonIconRounded.PNG");
         _circleTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/CircleIcon.PNG");
@@ -70,6 +80,8 @@ public class EasyToDoWindow : EditorWindow
         _plusIconTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/PlusIcon.PNG");
         _minusIconTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/MinusIcon.PNG");
         _settings = EasyToDoSettingsWindow.LoadSettings();
+
+        // Persist
         LoadData();
 
         if (_settings.EnableLogging)
@@ -77,10 +89,18 @@ public class EasyToDoWindow : EditorWindow
             Logger.EnableLogging();
         }
 
+        // Fixed Update Actions
+        _fixedUpdate.Push(() =>
+        {
+            Debug.Log("Hello world!");
+        });
     }
 
     private void OnDisable()
     {
+        // Fixed Update
+        _fixedUpdate.Disable();
+        // Persist
         EasyToDoSettingsWindow.SaveSettings();
         SaveData();
     }
@@ -93,7 +113,7 @@ public class EasyToDoWindow : EditorWindow
         // Navbar
         DrawNavbar(window);
         // New Task Form
-        DrawNewTaskFormInput(window);
+        DrawNewTaskFormInputGroup(window);
         // Add Task Button
         DrawAddTaskButton();
         // Task List
@@ -135,16 +155,27 @@ public class EasyToDoWindow : EditorWindow
         SaveData();
     }
 
+    /// <summary>
+    /// Clears new task input form.
+    /// </summary>
     private static void ClearForm()
     {
         _newTaskName = "";
     }
 
+    /// <summary>
+    /// Draws background.
+    /// </summary>
+    /// <param name="window"></param>
     private void DrawBackground(EasyToDoWindow window)
     {
         Utility.Box(new Rect(0, 0, window.position.width, window.position.height), _boxTexture, _settings.BackgroundColor);
     }
 
+    /// <summary>
+    /// Draws navbar UI element.
+    /// </summary>
+    /// <param name="window">Parent editor window.</param>
     private void DrawNavbar(EditorWindow window)
     {
         Utility.Box(new Rect(0, 0, window.position.width, NAVBAR_HEIGHT), _boxTexture, _settings.NavbarColor);
@@ -153,6 +184,9 @@ public class EasyToDoWindow : EditorWindow
         DrawMenuButton();
     }
 
+    /// <summary>
+    /// Draws menu button UI element.
+    /// </summary>
     private void DrawMenuButton()
     {
         var texture = GetMenuButtonTexture();
@@ -160,6 +194,10 @@ public class EasyToDoWindow : EditorWindow
         Utility.Button(_menuButtonPosition, texture, _settings.MenuIconColor, ToggleListMenu);
     }
 
+    /// <summary>
+    /// Gets menu button texture depending if menu is open (button clicked) or closed.
+    /// </summary>
+    /// <returns></returns>
     private Texture2D GetMenuButtonTexture()
     {
         if (_toggleListMenu)
@@ -170,7 +208,11 @@ public class EasyToDoWindow : EditorWindow
         return _menuIconTexture;
     }
 
-    private void DrawNewTaskFormInput(EasyToDoWindow window)
+    /// <summary>
+    /// Draws new task input form group UI element.
+    /// </summary>
+    /// <param name="window">Parent window.</param>
+    private void DrawNewTaskFormInputGroup(EasyToDoWindow window)
     {
         var newTaskFormStyle = Utility.DefaultLabelStyle();
         Utility.StyleTextColors(newTaskFormStyle, _settings.NewTaskFormTextColorNormal, _settings.NewTaskFormTextColorFocused);
@@ -178,6 +220,9 @@ public class EasyToDoWindow : EditorWindow
         DrawNewTaskFormPlaceholder(window, newTaskFormStyle, _settings);
     }
 
+    /// <summary>
+    /// Draws add task button UI element.
+    /// </summary>
     private void DrawAddTaskButton()
     {
         if (Event.current.type == EventType.KeyUp && Event.current.keyCode == KeyCode.Return)
@@ -191,6 +236,12 @@ public class EasyToDoWindow : EditorWindow
         Utility.Button(_addTaskButtonIconPosition, _plusIconTexture, _settings.NewTaskFormBackgroundIconColor, () => { });
     }
 
+    /// <summary>
+    /// Draws new task input form UI element.
+    /// </summary>
+    /// <param name="window">Parent window.</param>
+    /// <param name="newTaskFormStyle">Form style.</param>
+    /// <returns>Input value.</returns>
     private string DrawNewTaskFormInput(EasyToDoWindow window, GUIStyle newTaskFormStyle)
     {
         Rect position = new Rect(_newTaskFormPosition.x, _newTaskFormPosition.y, window.position.width - _newTaskFormPosition.width, _newTaskFormPosition.height);
@@ -199,6 +250,12 @@ public class EasyToDoWindow : EditorWindow
         return Utility.TexturedStringField(_settings.NewTaskFormBackgroundColor, position, _boxTexture, newTaskFormStyle, margins, _newTaskName);
     }
 
+    /// <summary>
+    /// Draws new task form placeholder.
+    /// </summary>
+    /// <param name="window">Parent window.</param>
+    /// <param name="newTaskFormStyle">Form style.</param>
+    /// <param name="settings">EasyToDo settings object.</param>
     private static void DrawNewTaskFormPlaceholder(EditorWindow window, GUIStyle newTaskFormStyle, EasyToDoSettings settings)
     {
         if (_newTaskName != "")
@@ -283,8 +340,6 @@ public class EasyToDoWindow : EditorWindow
         {
             GetTask(index).Completed = true;
         });
-
-
     }
 
     /// <summary>
@@ -353,22 +408,68 @@ public class EasyToDoWindow : EditorWindow
     /// <param name="window">Parent window.</param>
     private void DrawListsView(EasyToDoWindow window)
     {
-        // Background
-        // if (!_toggleListMenu)
-        // {
-        //     return;
-        // }
-
-        if (_toggleListMenu && _listViewHeight <= window.position.height - 40f)
+        if (_toggleListMenu && _listViewHeight <= (window.position.height - 40f))
         {
             _listViewHeight += LIST_VIEW_ANIMATION_FREQUENCY;
+            if (_footerPosition <= (window.position.height - 40f))
+            {
+                _footerPosition += LIST_VIEW_ANIMATION_FREQUENCY;
+            }
         }
         else if (!_toggleListMenu && _listViewHeight >= 0)
         {
             _listViewHeight -= LIST_VIEW_ANIMATION_FREQUENCY;
+
+            _footerPosition -= LIST_VIEW_ANIMATION_FREQUENCY;
         }
 
-        Utility.Box(new Rect(0, NAVBAR_HEIGHT, window.position.width, _listViewHeight), _boxTexture, _settings.BackgroundColor);
+        if (_listViewHeight >= 0)
+        {
+            Utility.Box(new Rect(0, NAVBAR_HEIGHT, window.position.width, _listViewHeight), _boxTexture, _settings.BackgroundColor);
+        }
+
+        if (_listViewHeight > NAVBAR_HEIGHT)
+        {
+            Utility.Box(new Rect(0, _footerPosition, window.position.width, _footerHeight), _boxTexture, _settings.NavbarColor);
+        }
+
+        if (_toggleListMenu)
+        {
+            DrawToDoListsSelectionView(window);
+        }
+    }
+
+    /// <summary>
+    /// Draws ToDoLists selection view
+    /// </summary>
+    /// <param name="window"></param>
+    private void DrawToDoListsSelectionView(EditorWindow window)
+    {
+        var position = new Rect(10f, 0f, window.position.width - 20f, 30f);
+
+        for (int i = 0; i < /* _manager.Lists.Count */ 10; i++)
+        {
+            position.y = (LISTS_CARDS_BEGINNING) + ((i + 1) * (position.height + LISTS_CARDS_OFFSET));
+
+            if (_listViewHeight >= position.y)
+            {
+                Utility.DrawCard(position, _boxTexture, Color.white, () =>
+                {
+                    DrawListsCardContent(position, i);
+                });
+            }
+        }
+    }
+
+    /// <summary>
+    /// Draws lists card content.
+    /// </summary>
+    /// <param name="position">Card position.</param>
+    /// <param name="index">List index.</param>
+    private void DrawListsCardContent(Rect position, int index)
+    {
+        // !
+        // todo implement
     }
 
     /// <summary>

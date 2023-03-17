@@ -402,4 +402,17 @@ public class Utility
 
         return style;
     }
+
+    /// <summary>
+    /// Draws Card UI element.
+    /// </summary>
+    /// <param name="position">Card position.</param>
+    /// <param name="texture">Card texture.</param>
+    /// <param name="callback">Callback function. Mainly used to draw card content.</param>
+    public static void DrawCard(Rect position, Texture2D texture, Color color, Action callback)
+    {
+        Box(position, texture, color);
+
+        callback?.Invoke();
+    }
 }
