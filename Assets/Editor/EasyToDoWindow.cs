@@ -47,7 +47,7 @@ public class EasyToDoWindow : EditorWindow
     private static int _indexTaskToDelete = -1;
     private static bool _toggleListMenu = false;
     public Vector2 scrollPosition = Vector2.zero;
-    private static FixedUpdate _fixedUpdate;
+    private static FixedUpdate _listsViewFixedUpdate;
 
     [MenuItem(MENU_PATH_OPEN + " " + WINDOW_KEY_OPEN)]
     public static void OpenWindow()
@@ -68,8 +68,8 @@ public class EasyToDoWindow : EditorWindow
     private void OnEnable()
     {
         // Fixed Update
-        _fixedUpdate = ScriptableObject.CreateInstance<FixedUpdate>();
-        _fixedUpdate.Enable();
+        _listsViewFixedUpdate = ScriptableObject.CreateInstance<FixedUpdate>();
+        _listsViewFixedUpdate.Enable();
         // Textures
         _boxTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/Box.PNG");
         _buttonIconRounded = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/ButtonIconRounded.PNG");
@@ -90,16 +90,18 @@ public class EasyToDoWindow : EditorWindow
         }
 
         // Fixed Update Actions
-        _fixedUpdate.Push(() =>
+        _listsViewFixedUpdate.TickFrequency = 0.01f;
+
+        _listsViewFixedUpdate.Push(() =>
         {
-            Debug.Log("Hello world!");
+            UpdateListsViewPositions(GetCurrentWindow());
         });
     }
 
     private void OnDisable()
     {
         // Fixed Update
-        _fixedUpdate.Disable();
+        _listsViewFixedUpdate.Disable();
         // Persist
         EasyToDoSettingsWindow.SaveSettings();
         SaveData();
@@ -303,7 +305,6 @@ public class EasyToDoWindow : EditorWindow
         DrawTaskStatus(window, index);
         DrawTaskName(window, index);
         DrawTaskDeleteButton(window, index);
-
     }
 
     /// <summary>
@@ -408,9 +409,32 @@ public class EasyToDoWindow : EditorWindow
     /// <param name="window">Parent window.</param>
     private void DrawListsView(EasyToDoWindow window)
     {
+        if (_listViewHeight >= 0)
+        {
+            Utility.Box(new Rect(0, NAVBAR_HEIGHT, window.position.width, _listViewHeight), _boxTexture, _settings.BackgroundColor);
+        }
+
+        if (_toggleListMenu)
+        {
+            DrawToDoListsSelectionView(window);
+        }
+
+        if (_listViewHeight > NAVBAR_HEIGHT)
+        {
+            Utility.Box(new Rect(0, _footerPosition, window.position.width, _footerHeight), _boxTexture, _settings.NavbarColor);
+        }
+    }
+
+    /// <summary>
+    /// Updates the lists view position variables.
+    /// </summary>
+    /// <param name="window">Parent window.</param>
+    private void UpdateListsViewPositions(EditorWindow window)
+    {
         if (_toggleListMenu && _listViewHeight <= (window.position.height - 40f))
         {
             _listViewHeight += LIST_VIEW_ANIMATION_FREQUENCY;
+
             if (_footerPosition <= (window.position.height - 40f))
             {
                 _footerPosition += LIST_VIEW_ANIMATION_FREQUENCY;
@@ -421,21 +445,6 @@ public class EasyToDoWindow : EditorWindow
             _listViewHeight -= LIST_VIEW_ANIMATION_FREQUENCY;
 
             _footerPosition -= LIST_VIEW_ANIMATION_FREQUENCY;
-        }
-
-        if (_listViewHeight >= 0)
-        {
-            Utility.Box(new Rect(0, NAVBAR_HEIGHT, window.position.width, _listViewHeight), _boxTexture, _settings.BackgroundColor);
-        }
-
-        if (_listViewHeight > NAVBAR_HEIGHT)
-        {
-            Utility.Box(new Rect(0, _footerPosition, window.position.width, _footerHeight), _boxTexture, _settings.NavbarColor);
-        }
-
-        if (_toggleListMenu)
-        {
-            DrawToDoListsSelectionView(window);
         }
     }
 

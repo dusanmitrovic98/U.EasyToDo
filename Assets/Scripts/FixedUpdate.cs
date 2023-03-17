@@ -16,7 +16,7 @@ public class FixedUpdate : EditorWindow
     /// <summary>
     /// Fixed interval tick frequency. 1.0f == 1s.
     /// </summary>
-    private float _fixedUpdateTime = 1.0f;
+    private float _tickFrequency = 1.0f;
     /// <summary>
     /// Last update time.
     /// </summary>
@@ -41,10 +41,10 @@ public class FixedUpdate : EditorWindow
         set { this._actions = value; }
     }
 
-    public float FixedUpdateTime
+    public float TickFrequency
     {
-        get { return _fixedUpdateTime; }
-        set { this._fixedUpdateTime = value; }
+        get { return _tickFrequency; }
+        set { this._tickFrequency = value; }
     }
 
     public int Counter
@@ -71,7 +71,7 @@ public class FixedUpdate : EditorWindow
 
     public void EditorUpdate()
     {
-        if (EditorApplication.timeSinceStartup > this._lastUpdateTime + this._fixedUpdateTime)
+        if (EditorApplication.timeSinceStartup > this._lastUpdateTime + this._tickFrequency)
         {
             this._lastUpdateTime = (float)EditorApplication.timeSinceStartup;
             ExecuteUpdate(() =>
@@ -191,11 +191,11 @@ public class FixedUpdate : EditorWindow
     /// </summary>
     /// <param name="action"></param>
     /// <returns></returns>
-    public int Push(Action action)
+    public FixedUpdate Push(Action action)
     {
         this._actions.Add(action);
 
-        return this._actions.Count - 1;
+        return this;
     }
 
     /// <summary>
