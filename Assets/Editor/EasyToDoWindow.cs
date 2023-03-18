@@ -25,7 +25,7 @@ public class EasyToDoWindow : EditorWindow
     private const float WIDTH = 350f;
     private const float HEIGHT = 600f;
     private const float NAVBAR_HEIGHT = 40f;
-    private const float LISTS_CARDS_BEGINNING = NAVBAR_HEIGHT + 22f;
+    private const float LISTS_CARDS_BEGINNING = NAVBAR_HEIGHT;
     private const float LISTS_CARDS_OFFSET = 10f;
     private const float TASK_LIST_OFFSET = 5f;
     private const float LISTS_OFFSET = 5f;
@@ -155,13 +155,13 @@ public class EasyToDoWindow : EditorWindow
             {
                 AddNewList();
 
-                Logger.Log("List created with name: " + _newListName);
+                Logger.Log("List created.");
             }
             else
             {
                 AddNewTask();
 
-                Logger.Log("Task created with name: " + _newTaskName);
+                Logger.Log("Task created.");
             }
         }
     }
@@ -453,16 +453,42 @@ public class EasyToDoWindow : EditorWindow
         GUIStyle style = Utility.DefaultLabelStyle();
         style.fontSize = 15;
         style.fontStyle = FontStyle.Bold;
-        float x = 50f;
-        float y = LISTS_OFFSET + (index * 40f);
-        float width = window.position.width - 100f;
-        float height = 30f;
+        float x = 28f;
+        float y = (LISTS_CARDS_BEGINNING + 76f) + (index * 50f);
+        float width = window.position.width - 90f;
+        float height = 32f;
         Rect position = new Rect(x, y, width, height);
-        var margins = new Vector4(0, 0, 0, 0);
+        var margins = new Vector4(10, 0, 0, 0);
 
-        var text = _manager.Lists[index].Name;
+        if (index >= 0 && index < _manager.Lists.Count)
+        {
+            var text = _manager.Lists[index].Name;
 
-        GetTask(index).Name = Utility.TexturedStringField(_settings.BackgroundColor, position, _boxTexture, style, margins, text);
+            DrawListDeleteButton(position, index);
+
+            _manager.Lists[index].Name = Utility.TexturedStringField(_settings.BackgroundColor, position, _cardIconWideTexture, style, margins, text);
+        }
+    }
+
+    /// <summary>
+    /// Draws list delete button UI element.
+    /// </summary>
+    /// <param name="position">List Name UI element position.</param>
+    /// <param name="index">Targeted list index.</param>
+    private static void DrawListDeleteButton(Rect position, int index)
+    {
+        Utility.Button(position, _cardIconWideTexture, Color.white, () =>
+        {
+            RemoveList(index);
+        });
+    }
+
+    private static void RemoveList(int index)
+    {
+        var name = _manager.Lists[index].Name;
+        _manager.RemoveList(index);
+        Logger.Log("List removed: " + name);
+        SaveData();
     }
 
     /// <summary>
@@ -544,15 +570,15 @@ public class EasyToDoWindow : EditorWindow
 
     private static void DrawLists(Rect position)
     {
-        for (int i = 0; i < /* _manager.Lists.Count */10; i++)
+        for (int i = 0; i < _manager.Lists.Count; i++)
         {
-            position.y = (LISTS_CARDS_BEGINNING) + ((i + 1) * (position.height + LISTS_CARDS_OFFSET));
+            position.y = (LISTS_CARDS_BEGINNING + 22f) + ((i + 1) * (position.height + LISTS_CARDS_OFFSET));
 
             if (_listViewHeight >= position.y)
             {
                 Utility.DrawCard(position, _cardIconWideTexture, new Color(0.5f, 0.5f, 0.5f, 0.1f), () =>
                 {
-                    DrawListsCardContent(position, i);
+                    DrawListsCardContent(i);
                 });
             }
         }
@@ -563,7 +589,7 @@ public class EasyToDoWindow : EditorWindow
     /// </summary>
     /// <param name="position">Card position.</param>
     /// <param name="index">List index.</param>
-    private static void DrawListsCardContent(Rect position, int index)
+    private static void DrawListsCardContent(int index)
     {
         DrawListName(GetCurrentWindow(), index);
     }
@@ -579,8 +605,9 @@ public class EasyToDoWindow : EditorWindow
         }
 
         _manager.RemoveTask(_settings.CurrentListIndex, _indexTaskToDelete);
-        Logger.Log("Deleted task with index: " + _indexTaskToDelete);
+        Logger.Log("Task deleted.");
         _indexTaskToDelete = -1;
+        SaveData();
     }
 
     /// <summary>
