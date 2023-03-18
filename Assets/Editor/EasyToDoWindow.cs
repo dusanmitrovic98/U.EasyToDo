@@ -28,7 +28,7 @@ public class EasyToDoWindow : EditorWindow
     private const float LISTS_CARDS_OFFSET = 10f;
     private const float TASK_LIST_OFFSET = 5f;
     private const float LIST_VIEW_ANIMATION_FREQUENCY = 1f;
-    private const float MENU_TOGGLE_VIEW_ANIMATION_SPEED = 0.001f;
+    private const float MENU_TOGGLE_VIEW_ANIMATION_SPEED = 0.0005f; // 0.000001f;
     private static float _listViewHeight = 0f;
     private static float _footerPosition = 0;
     private static float _footerHeight = NAVBAR_HEIGHT;
@@ -455,22 +455,14 @@ public class EasyToDoWindow : EditorWindow
     /// <param name="window"></param>
     private static void DrawToDoListsSelectionView(EditorWindow window)
     {
-        if (!_toggleListMenu)
-        {
-            return;
-        }
-
-        DrawAllListsCards(window);
-    }
-
-    /// <summary>
-    /// Draws all ToDoLists cards UI elements.
-    /// </summary>
-    /// <param name="window">Parent window.</param>
-    private static void DrawAllListsCards(EditorWindow window)
-    {
         var position = new Rect(10f, 0f, window.position.width - 20f, 30f);
 
+        DrawLists(position);
+        // DrawAllListsCards(window);
+    }
+
+    private static void DrawLists(Rect position)
+    {
         for (int i = 0; i < _manager.Lists.Count; i++)
         {
             position.y = (LISTS_CARDS_BEGINNING) + ((i + 1) * (position.height + LISTS_CARDS_OFFSET));
