@@ -1,7 +1,7 @@
 {
     "_currentListIndex": 0,
     "_showCompletedTasks": true,
-    "_enableLogging": false,
+    "_enableLogging": true,
     "_animateListsView": true,
     "_backgroundColor": {
         "r": 0.210999995470047,
@@ -39,7 +39,19 @@
         "b": 1.0,
         "a": 1.0
     },
+    "_newListFormBackgroundColor": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+    },
     "_newTaskFormBackgroundIconColor": {
+        "r": 0.5199999809265137,
+        "g": 0.49000000953674319,
+        "b": 0.6100000143051148,
+        "a": 1.0
+    },
+    "_newListFormBackgroundIconColor": {
         "r": 0.5199999809265137,
         "g": 0.49000000953674319,
         "b": 0.6100000143051148,

@@ -23,7 +23,9 @@ public class EasyToDoSettings
     [SerializeField] private Color _newTaskFormTextColorNormal;
     [SerializeField] private Color _newTaskFormTextColorFocused;
     [SerializeField] private Color _newTaskFormBackgroundColor;
+    [SerializeField] private Color _newListFormBackgroundColor;
     [SerializeField] private Color _newTaskFormBackgroundIconColor;
+    [SerializeField] private Color _newListFormBackgroundIconColor;
     [SerializeField] private Color _newTaskPlaceholderColor;
     // Task View
     [SerializeField] private Color _taskStatusInactiveOuterCircleColor;
@@ -91,10 +93,22 @@ public class EasyToDoSettings
         set { this._newTaskFormBackgroundColor = value; }
     }
 
+    public Color NewListFormBackgroundColor
+    {
+        get { return this._newListFormBackgroundColor; }
+        set { this._newListFormBackgroundColor = value; }
+    }
+
     public Color NewTaskFormBackgroundIconColor
     {
         get { return this._newTaskFormBackgroundIconColor; }
         set { this._newTaskFormBackgroundIconColor = value; }
+    }
+
+    public Color NewListFormBackgroundIconColor
+    {
+        get { return this._newListFormBackgroundIconColor; }
+        set { this._newListFormBackgroundIconColor = value; }
     }
 
     public Color NewTaskPlaceholderColor
@@ -147,7 +161,9 @@ public class EasyToDoSettings
         _newTaskFormTextColorNormal = new Color(0.6f, 0.4f, 0.8f);
         _newTaskFormTextColorFocused = new Color(0.36f, 0.04f, 0.58f);
         _newTaskFormBackgroundColor = Color.white;
+        _newListFormBackgroundColor = Color.white;
         _newTaskFormBackgroundIconColor = new Color(0.52f, 0.49f, 0.61f);
+        _newListFormBackgroundIconColor = new Color(0.52f, 0.49f, 0.61f);
         _newTaskPlaceholderColor = new Color(0.56f, 0.53f, 0.65f);
         // Task View
         _taskStatusInactiveOuterCircleColor = Color.white;

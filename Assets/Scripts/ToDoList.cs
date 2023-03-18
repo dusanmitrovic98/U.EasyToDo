@@ -7,7 +7,14 @@ using UnityEngine;
 [System.Serializable]
 public class ToDoList
 {
+    [SerializeField] private string _name;
     [SerializeField] private List<Task> _tasks;
+
+    public string Name
+    {
+        get { return _name; }
+        set { _name = value; }
+    }
 
     public List<Task> Tasks
     {
@@ -17,6 +24,7 @@ public class ToDoList
 
     public ToDoList()
     {
+        this._name = "";
         this._tasks = new List<Task>();
     }
 }

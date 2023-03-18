@@ -21,12 +21,14 @@ public class EasyToDoWindow : EditorWindow
     private const string WINDOW_KEY_DELETE_DATA_FILE = "%#d";
     private const string TITLE_CONTENT = "EasyToDo";
     private const string _placeholderText = "Add Task ...";
+    private const string _placeholderListsText = "Add List ...";
     private const float WIDTH = 350f;
     private const float HEIGHT = 600f;
     private const float NAVBAR_HEIGHT = 40f;
-    private const float LISTS_CARDS_BEGINNING = NAVBAR_HEIGHT - 18f;
+    private const float LISTS_CARDS_BEGINNING = NAVBAR_HEIGHT + 22f;
     private const float LISTS_CARDS_OFFSET = 10f;
     private const float TASK_LIST_OFFSET = 5f;
+    private const float LISTS_OFFSET = 5f;
     private const float LIST_VIEW_ANIMATION_FREQUENCY = 1f;
     private const float MENU_TOGGLE_VIEW_ANIMATION_SPEED = 0.0005f; // 0.000001f;
     private static float _listViewHeight = 0f;
@@ -34,6 +36,7 @@ public class EasyToDoWindow : EditorWindow
     private static float _footerHeight = NAVBAR_HEIGHT;
     private static EasyToDoSettings _settings;
     private static Texture2D _boxTexture;
+    private static Texture2D _cardIconWideTexture;
     private static Texture2D _buttonIconRounded;
     private static Texture2D _circleTexture;
     private static Texture2D _checkmarkTexture;
@@ -42,10 +45,11 @@ public class EasyToDoWindow : EditorWindow
     private static Texture2D _plusIconTexture;
     private static Texture2D _minusIconTexture;
     private static string _newTaskName = "";
+    private static string _newListName = "";
     private static Rect _menuButtonPosition = new Rect(10f, 8f, 25f, 25f);
-    private static Rect _addTaskButtonPosition = new Rect(8f, 50f, 40f, 40f);
-    private static Rect _addTaskButtonIconPosition = new Rect(24f, 78f, 16f, -17f);
-    private static Rect _newTaskFormPosition = new Rect(48f, 50f, 56f, 40f);
+    private static Rect _addButtonPosition = new Rect(8f, 50f, 40f, 40f);
+    private static Rect _addButtonIconPosition = new Rect(24f, 78f, 16f, -17f);
+    private static Rect _newFormPosition = new Rect(48f, 50f, 56f, 40f);
     private static ToDoManager _manager = new ToDoManager();
     private static int _indexTaskToDelete = -1;
     private static bool _toggleListMenu = false;
@@ -81,6 +85,7 @@ public class EasyToDoWindow : EditorWindow
         _listsViewFixedUpdate.Enable();
         // Textures
         _boxTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/Box.PNG");
+        _cardIconWideTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/CardIconWide.PNG");
         _buttonIconRounded = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/ButtonIconRounded.PNG");
         _circleTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/CircleIcon.PNG");
         _checkmarkTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/CheckmarkIcon.PNG");
@@ -121,10 +126,14 @@ public class EasyToDoWindow : EditorWindow
         var window = GetCurrentWindow();
         // Background
         DrawBackground(window);
-        // New Task Form
-        DrawNewTaskFormInputGroup(window);
-        // Add Task Button
-        DrawAddTaskButton();
+        if (_listViewHeight <= 100f)
+        {
+            // New Task Form
+            DrawFormInputGroup(window, ref _newTaskName, _settings.NewTaskFormTextColorNormal, _settings.NewTaskFormTextColorFocused,
+            _settings.NewTaskPlaceholderColor, _placeholderText, _settings.NewTaskFormBackgroundColor);
+            // Add Task Button
+            DrawAddTaskButton();
+        }
         // Task List
         DrawTaskList(window);
         // Lists View
@@ -133,6 +142,28 @@ public class EasyToDoWindow : EditorWindow
         DrawNavbar(window);
 
         Utility.RemoveFocus();
+    }
+
+    /// <summary>
+    /// Handles enter key press while input form field is focused.
+    /// </summary>
+    private static void EnterKeyHandler()
+    {
+        if (Event.current.type == EventType.KeyUp && Event.current.keyCode == KeyCode.Return)
+        {
+            if (_toggleListMenu)
+            {
+                AddNewList();
+
+                Logger.Log("List created with name: " + _newListName);
+            }
+            else
+            {
+                AddNewTask();
+
+                Logger.Log("Task created with name: " + _newTaskName);
+            }
+        }
     }
 
     private static EasyToDoWindow GetCurrentWindow()
@@ -223,12 +254,12 @@ public class EasyToDoWindow : EditorWindow
     /// Draws new task input form group UI element.
     /// </summary>
     /// <param name="window">Parent window.</param>
-    private static void DrawNewTaskFormInputGroup(EasyToDoWindow window)
+    private static void DrawFormInputGroup(EasyToDoWindow window, ref string textInput, Color normal, Color focused, Color placeholderColor, string placeholderText, Color formBackgroundColor)
     {
-        var newTaskFormStyle = Utility.DefaultLabelStyle();
-        Utility.StyleTextColors(newTaskFormStyle, _settings.NewTaskFormTextColorNormal, _settings.NewTaskFormTextColorFocused);
-        _newTaskName = DrawNewTaskFormInput(window, newTaskFormStyle);
-        DrawNewTaskFormPlaceholder(window, newTaskFormStyle, _settings);
+        var formStyle = Utility.DefaultLabelStyle();
+        Utility.StyleTextColors(formStyle, normal, focused);
+        textInput = DrawFormInput(_newFormPosition, window, formStyle, formBackgroundColor, ref textInput);
+        DrawFormPlaceholder(window, formStyle, _settings, placeholderColor, placeholderText, textInput);
     }
 
     /// <summary>
@@ -236,15 +267,38 @@ public class EasyToDoWindow : EditorWindow
     /// </summary>
     private static void DrawAddTaskButton()
     {
-        if (Event.current.type == EventType.KeyUp && Event.current.keyCode == KeyCode.Return)
-        {
-            AddNewTask();
+        EnterKeyHandler();
 
-            Logger.Log("Task created with name: " + _newTaskName);
-        }
+        Utility.Button(_addButtonPosition, _boxTexture, _settings.NewTaskFormBackgroundColor, AddNewTask);
+        Utility.Button(_addButtonIconPosition, _plusIconTexture, _settings.NewTaskFormBackgroundIconColor, () => { });
+    }
 
-        Utility.Button(_addTaskButtonPosition, _boxTexture, _settings.NewTaskFormBackgroundColor, AddNewTask);
-        Utility.Button(_addTaskButtonIconPosition, _plusIconTexture, _settings.NewTaskFormBackgroundIconColor, () => { });
+    /// <summary>
+    /// Draws add task button UI element.
+    /// </summary>
+    private static void DrawAddListButton()
+    {
+        EnterKeyHandler();
+
+        Utility.Button(_addButtonPosition, _boxTexture, _settings.NewListFormBackgroundColor, AddNewList);
+        Utility.Button(_addButtonIconPosition, _plusIconTexture, _settings.NewListFormBackgroundIconColor, () => { });
+    }
+
+    /// <summary>
+    /// Add new task to currently selected ToDo list.
+    /// </summary>
+    private static void AddNewList()
+    {
+        Logger.Log("List created with name: " + _newListName);
+        _manager.AddList();
+        _manager.Lists[_manager.Lists.Count - 1].Name = _newListName;
+        ClearListForm();
+        SaveData();
+    }
+
+    private static void ClearListForm()
+    {
+        _newListName = "";
     }
 
     /// <summary>
@@ -253,12 +307,12 @@ public class EasyToDoWindow : EditorWindow
     /// <param name="window">Parent window.</param>
     /// <param name="newTaskFormStyle">Form style.</param>
     /// <returns>Input value.</returns>
-    private static string DrawNewTaskFormInput(EasyToDoWindow window, GUIStyle newTaskFormStyle)
+    private static string DrawFormInput(Rect formPosition, EasyToDoWindow window, GUIStyle formStyle, Color color, ref string textInput)
     {
-        Rect position = new Rect(_newTaskFormPosition.x, _newTaskFormPosition.y, window.position.width - _newTaskFormPosition.width, _newTaskFormPosition.height);
+        Rect position = new Rect(formPosition.x, formPosition.y, window.position.width - formPosition.width, formPosition.height);
         Vector4 margins = new Vector4(5f, 5f, 2f, 0f);
 
-        return Utility.TexturedStringField(_settings.NewTaskFormBackgroundColor, position, _boxTexture, newTaskFormStyle, margins, _newTaskName);
+        return Utility.TexturedStringField(color, position, _boxTexture, formStyle, margins, textInput);
     }
 
     /// <summary>
@@ -267,9 +321,9 @@ public class EasyToDoWindow : EditorWindow
     /// <param name="window">Parent window.</param>
     /// <param name="newTaskFormStyle">Form style.</param>
     /// <param name="settings">EasyToDo settings object.</param>
-    private static void DrawNewTaskFormPlaceholder(EditorWindow window, GUIStyle newTaskFormStyle, EasyToDoSettings settings)
+    private static void DrawFormPlaceholder(EditorWindow window, GUIStyle formStyle, EasyToDoSettings settings, Color color, string text, string textInput)
     {
-        if (_newTaskName != "")
+        if (textInput != "")
         {
             return;
         }
@@ -277,7 +331,7 @@ public class EasyToDoWindow : EditorWindow
         Rect placeholderLabelPosition = new Rect(56f, 52f, window.position.width - 56f, 40f);
         Rect correctionPlaceholderCoverBoxPosition = new Rect(window.position.width - 8f, 50f, 8f, 40f);
 
-        Utility.Label(placeholderLabelPosition, newTaskFormStyle, settings.NewTaskPlaceholderColor, _placeholderText);
+        Utility.Label(placeholderLabelPosition, formStyle, color, text);
         Utility.Box(correctionPlaceholderCoverBoxPosition, _boxTexture, settings.BackgroundColor);
     }
 
@@ -390,6 +444,28 @@ public class EasyToDoWindow : EditorWindow
     }
 
     /// <summary>
+    /// Draws, specified by index, task name.
+    /// </summary>
+    /// <param name="window">Parent editor window.</param>
+    /// <param name="index">>Targeted task index.</param>
+    private static void DrawListName(EditorWindow window, int index)
+    {
+        GUIStyle style = Utility.DefaultLabelStyle();
+        style.fontSize = 15;
+        style.fontStyle = FontStyle.Bold;
+        float x = 50f;
+        float y = LISTS_OFFSET + (index * 40f);
+        float width = window.position.width - 100f;
+        float height = 30f;
+        Rect position = new Rect(x, y, width, height);
+        var margins = new Vector4(0, 0, 0, 0);
+
+        var text = _manager.Lists[index].Name;
+
+        GetTask(index).Name = Utility.TexturedStringField(_settings.BackgroundColor, position, _boxTexture, style, margins, text);
+    }
+
+    /// <summary>
     /// Draws, specified by index, task corresponding delete button.
     /// </summary>
     /// <param name="window">Parent editor window.</param>
@@ -421,6 +497,11 @@ public class EasyToDoWindow : EditorWindow
         if (_listViewHeight >= 0)
         {
             Utility.Box(new Rect(0, NAVBAR_HEIGHT, window.position.width, _listViewHeight), _boxTexture, _settings.BackgroundColor);
+            // New List Input Form
+            DrawFormInputGroup(window, ref _newListName, _settings.NewTaskFormTextColorNormal, _settings.NewTaskFormTextColorFocused,
+            _settings.NewTaskPlaceholderColor, _placeholderListsText, _settings.NewTaskFormBackgroundColor);
+            // Add List Button 
+            DrawAddListButton();
             DrawToDoListsSelectionView(window);
             Utility.Box(new Rect(0, _footerPosition, window.position.width, _footerHeight), _boxTexture, _settings.NavbarColor);
         }
@@ -455,21 +536,21 @@ public class EasyToDoWindow : EditorWindow
     /// <param name="window"></param>
     private static void DrawToDoListsSelectionView(EditorWindow window)
     {
-        var position = new Rect(10f, 0f, window.position.width - 20f, 30f);
+        var position = new Rect(10f, 0f, window.position.width - 20f, 40f);
 
         DrawLists(position);
-        // DrawAllListsCards(window);
+        // DrawAllListsCards(window); 
     }
 
     private static void DrawLists(Rect position)
     {
-        for (int i = 0; i < _manager.Lists.Count; i++)
+        for (int i = 0; i < /* _manager.Lists.Count */10; i++)
         {
             position.y = (LISTS_CARDS_BEGINNING) + ((i + 1) * (position.height + LISTS_CARDS_OFFSET));
 
             if (_listViewHeight >= position.y)
             {
-                Utility.DrawCard(position, _boxTexture, Color.white, () =>
+                Utility.DrawCard(position, _cardIconWideTexture, new Color(0.5f, 0.5f, 0.5f, 0.1f), () =>
                 {
                     DrawListsCardContent(position, i);
                 });
@@ -484,8 +565,7 @@ public class EasyToDoWindow : EditorWindow
     /// <param name="index">List index.</param>
     private static void DrawListsCardContent(Rect position, int index)
     {
-        // !
-        // todo implement
+        DrawListName(GetCurrentWindow(), index);
     }
 
     /// <summary>
