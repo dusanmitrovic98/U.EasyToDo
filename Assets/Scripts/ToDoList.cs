@@ -27,4 +27,10 @@ public class ToDoList
         this._name = "";
         this._tasks = new List<Task>();
     }
+
+    public ToDoList(string name)
+    {
+        this._name = name;
+        this._tasks = new List<Task>();
+    }
 }

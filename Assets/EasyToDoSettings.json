@@ -1,7 +1,34 @@
 {
+    "_listsColors": [
+        {
+            "r": 0.5,
+            "g": 0.5,
+            "b": 0.5,
+            "a": 1.0
+        },
+        {
+            "r": 0.40540575981140139,
+            "g": 1.0,
+            "b": 0.0,
+            "a": 1.0
+        },
+        {
+            "r": 1.0,
+            "g": 0.3139951825141907,
+            "b": 0.0,
+            "a": 1.0
+        },
+        {
+            "r": 0.2711207866668701,
+            "g": 1.0,
+            "b": 0.0,
+            "a": 1.0
+        }
+    ],
     "_currentListIndex": 0,
     "_showCompletedTasks": true,
     "_enableLogging": true,
+    "_showListsUnderline": false,
     "_animateListsView": true,
     "_backgroundColor": {
         "r": 0.210999995470047,

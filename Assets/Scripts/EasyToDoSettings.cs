@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -5,6 +6,8 @@ using UnityEngine;
 /// </summary>
 public class EasyToDoSettings
 {
+    // lists
+    [SerializeField] private List<Color> _listsColors;
     // Current list
     [SerializeField] private int _currentListIndex;
     // Task status
@@ -12,6 +15,7 @@ public class EasyToDoSettings
     // Console Logs
     [SerializeField] private bool _enableLogging;
     // Lists view
+    [SerializeField] private bool _showListsUnderline;
     [SerializeField] private bool _animateListsView;
     // Background
     [SerializeField] private Color _backgroundColor;
@@ -33,6 +37,12 @@ public class EasyToDoSettings
     [SerializeField] private Color _taskStatusActiveCheckmarkColor;
     [SerializeField] private Color _deleteTaskButtonColor;
 
+    public List<Color> ListsColors
+    {
+        get { return this._listsColors; }
+        set { this._listsColors = value; }
+    }
+
     public int CurrentListIndex
     {
         get { return this._currentListIndex; }
@@ -49,6 +59,12 @@ public class EasyToDoSettings
     {
         get { return this._enableLogging; }
         set { this._enableLogging = value; }
+    }
+
+    public bool ShowListsUnderline
+    {
+        get { return this._showListsUnderline; }
+        set { this._showListsUnderline = value; }
     }
 
     public bool AnimateListsView
@@ -143,11 +159,14 @@ public class EasyToDoSettings
 
     public EasyToDoSettings()
     {
+        // Lists
+        _listsColors = new List<Color>();
         // List index
         _currentListIndex = 0;
         // Task Status
         _showCompletedTasks = true;
         // Lists view
+        _showListsUnderline = false;
         _animateListsView = true;
         // Console Logs
         _enableLogging = true;

@@ -19,7 +19,7 @@ public class ToDoManager
     public ToDoManager()
     {
         _lists = new List<ToDoList>();
-        AddList();
+        AddList("Default");
     }
 
     /// <summary>
@@ -52,16 +52,27 @@ public class ToDoManager
     public void AddList()
     {
         _lists.Add(new ToDoList());
+
+    }
+    /// <summary>
+    /// Adds new named ToDo list.
+    /// </summary>
+    /// <param name="name">List name.</param>
+    /// 
+    public void AddList(string name)
+    {
+        _lists.Add(new ToDoList(name));
     }
 
     /// <summary>
-    /// Remove a ToDo list at the given index
+    /// Remove a ToDo list at the given index.
     /// </summary>
     /// <param name="index">Index of list to be removed</param>
     public void RemoveList(int index)
     {
         if (index >= 0 && index < _lists.Count)
         {
+            Debug.Log(index);
             _lists.RemoveAt(index);
         }
     }
@@ -152,7 +163,10 @@ public class ToDoManager
         {
             Logger.Log("Generated New Data File.");
 
-            return new ToDoManager();
+            var manager = new ToDoManager();
+            SaveToFile(filePath);
+
+            return manager;
         }
     }
 }

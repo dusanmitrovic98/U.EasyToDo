@@ -2,10 +2,9 @@ using UnityEditor;
 using UnityEngine;
 using System.IO;
 using System;
-using System.Collections;
 
 /// <summary>
-/// Main editor window for EasyToDo. 
+/// Main editor window for EasyToDo.
 /// </summary>
 
 public class EasyToDoWindow : EditorWindow
@@ -30,14 +29,17 @@ public class EasyToDoWindow : EditorWindow
     private const float TASK_LIST_OFFSET = 5f;
     private const float LISTS_OFFSET = 5f;
     private const float LIST_VIEW_ANIMATION_FREQUENCY = 1f;
-    private const float MENU_TOGGLE_VIEW_ANIMATION_SPEED = 0.0005f; // 0.000001f;
+    private const float MENU_TOGGLE_VIEW_ANIMATION_SPEED = 0.0005f;
     private static float _listViewHeight = 0f;
     private static float _footerPosition = 0;
     private static float _footerHeight = NAVBAR_HEIGHT;
+    private static float _taskNameOpacity = 0.8f;
+    private static float _listNameOpacity = 0.7f;
     private static EasyToDoSettings _settings;
     private static Texture2D _boxTexture;
     private static Texture2D _cardIconWideTexture;
     private static Texture2D _buttonIconRounded;
+    private static Texture2D _buttonIconRoundedOneSide;
     private static Texture2D _circleTexture;
     private static Texture2D _checkmarkTexture;
     private static Texture2D _menuIconTexture;
@@ -53,7 +55,8 @@ public class EasyToDoWindow : EditorWindow
     private static ToDoManager _manager = new ToDoManager();
     private static int _indexTaskToDelete = -1;
     private static bool _toggleListMenu = false;
-    public static Vector2 scrollPosition = Vector2.zero;
+    public static Vector2 _scrollPosition = Vector2.zero;
+    // public static Vector2 _listsScrollPosition = Vector2.zero;
     private static FixedUpdate _listsViewFixedUpdate;
 
     [MenuItem(MENU_PATH_OPEN + " " + WINDOW_KEY_OPEN)]
@@ -87,6 +90,7 @@ public class EasyToDoWindow : EditorWindow
         _boxTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/Box.PNG");
         _cardIconWideTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/CardIconWide.PNG");
         _buttonIconRounded = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/ButtonIconRounded.PNG");
+        _buttonIconRoundedOneSide = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/ButtonIconRoundedOneSide.PNG");
         _circleTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/CircleIcon.PNG");
         _checkmarkTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/CheckmarkIcon.PNG");
         _menuIconTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/MenuIconLight.PNG");
@@ -124,6 +128,7 @@ public class EasyToDoWindow : EditorWindow
     private void OnGUI()
     {
         var window = GetCurrentWindow();
+
         // Background
         DrawBackground(window);
         if (_listViewHeight <= 100f)
@@ -290,8 +295,9 @@ public class EasyToDoWindow : EditorWindow
     private static void AddNewList()
     {
         Logger.Log("List created with name: " + _newListName);
-        _manager.AddList();
+        _manager.AddList(_newListName);
         _manager.Lists[_manager.Lists.Count - 1].Name = _newListName;
+        _settings.ListsColors.Add(UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 1f, 1f));
         ClearListForm();
         SaveData();
     }
@@ -340,12 +346,26 @@ public class EasyToDoWindow : EditorWindow
     /// </summary>
     private static void DrawTaskList(EditorWindow window)
     {
+        // Debug.Log(_settings.CurrentListIndex);
         GUILayout.Space(100f);
-        scrollPosition = GUILayout.BeginScrollView(
-            scrollPosition, GUILayout.Height(window.position.height - 100f));
+        _scrollPosition = GUILayout.BeginScrollView(
+            _scrollPosition, GUILayout.Height(window.position.height - 100f));
+
+        if (_settings.CurrentListIndex >= 0 && _settings.CurrentListIndex < _manager.Lists.Count)
+        {
+            if (_manager.Lists[_settings.CurrentListIndex].Tasks.Count == 0)
+            {
+                Utility.Label(new Rect((window.position.width / 2) - 30f, NAVBAR_HEIGHT, 50f, 30f), "Empty ...");
+            }
+        }
+
         for (int i = 0; i < _manager.CountByIndex(_settings.CurrentListIndex); i++)
         {
-            DrawTask(window, i);
+            if (_footerPosition < (NAVBAR_HEIGHT + 50f + (i * 40f)))
+            {
+                DrawTask(window, i);
+            }
+
             GUILayout.Space(40f);
         }
         GUILayout.EndScrollView();
@@ -430,7 +450,11 @@ public class EasyToDoWindow : EditorWindow
             GUI.enabled = false;
         }
 
+        Color defaultColor = GUI.color;
+        GUI.color = new Color(1, 1, 1, _taskNameOpacity);
         GetTask(index).Name = Utility.TexturedStringField(_settings.BackgroundColor, position, _boxTexture, style, margins, text);
+        GUI.color = defaultColor;
+
         position.x = 52f;
         position.y = TASK_LIST_OFFSET + (index * 40f) + 16f;
         position.width = GUI.skin.textField.CalcSize(new GUIContent(text)).x * 1.2f;
@@ -453,21 +477,97 @@ public class EasyToDoWindow : EditorWindow
         GUIStyle style = Utility.DefaultLabelStyle();
         style.fontSize = 15;
         style.fontStyle = FontStyle.Bold;
-        float x = 28f;
-        float y = (LISTS_CARDS_BEGINNING + 76f) + (index * 50f);
-        float width = window.position.width - 90f;
+        // float x = 28f;
+        float x = 30f;
+        float y = (LISTS_CARDS_BEGINNING + 66f) + (index * 50f);
+        // float width = window.position.width - 102f;
+        float width = 248;
         float height = 32f;
         Rect position = new Rect(x, y, width, height);
         var margins = new Vector4(10, 0, 0, 0);
 
+        DrawColorBox(position, index);
+
         if (index >= 0 && index < _manager.Lists.Count)
         {
-            var text = _manager.Lists[index].Name;
+            if (index != 0)
+            {
+                DrawListDeleteButton(position, index);
+            }
 
-            DrawListDeleteButton(position, index);
+            if (index >= 0 && index < _manager.Lists.Count)
+            {
+                Color defaultColor = GUI.color;
+                if (index == 0)
+                {
+                    GUI.color = new Color(1, 1, 1, 0.5f);
+                }
+                else
+                {
+                    GUI.color = new Color(1, 1, 1, _listNameOpacity);
+                }
 
-            _manager.Lists[index].Name = Utility.TexturedStringField(_settings.BackgroundColor, position, _cardIconWideTexture, style, margins, text);
+                var color = _settings.BackgroundColor;
+                color.a = 1f;
+                Utility.Box(position, _cardIconWideTexture, color);
+                var defaultPosition = position;
+                position.x = GetCurrentWindow().position.width - defaultPosition.width - (defaultPosition.x * 2);
+
+                if (GetCurrentWindow().position.width > 335)
+                {
+                    Utility.Box(position, _cardIconWideTexture, color);
+                }
+
+                position = defaultPosition;
+                position.x = defaultPosition.x + 20f;
+                position.width = GetCurrentWindow().position.width - 120f;
+
+                if (GetCurrentWindow().position.width <= 335f)
+                {
+                    position.width = GetCurrentWindow().position.width - 60f;
+                }
+
+                _manager.Lists[index].Name = Utility.TexturedStringField(color, position, _boxTexture, style, margins, _manager.Lists[index].Name);
+                GUI.color = defaultColor;
+            }
         }
+    }
+
+    /// <summary>
+    /// Draws select list UI element.
+    /// </summary>
+    /// <param name="position">List name position.</param>
+    /// <param name="index">Targeted list index.</param>
+    private static void DrawColorBox(Rect position, int index)
+    {
+        position.x = 20f;
+        position.width = 156f;
+        if (_settings.ShowListsUnderline)
+        {
+            position.height = 32.5f;
+        }
+
+        Color color;
+
+        if (index >= 0 && index < _settings.ListsColors.Count)
+        {
+            color = _settings.ListsColors[index];
+        }
+        else
+        {
+            color = Color.grey;
+        }
+
+        color.a = 0.5f;
+        // position.x = 10f;
+        // position.width = GetCurrentWindow().position.width - 20f;
+        Utility.Box(position, _buttonIconRounded, color);
+    }
+
+    private static void SelectList(int index)
+    {
+        _settings.CurrentListIndex = index;
+        ToggleListMenu();
     }
 
     /// <summary>
@@ -477,17 +577,30 @@ public class EasyToDoWindow : EditorWindow
     /// <param name="index">Targeted list index.</param>
     private static void DrawListDeleteButton(Rect position, int index)
     {
-        Utility.Button(position, _cardIconWideTexture, Color.white, () =>
+        position.x = GetCurrentWindow().position.width - 58f;
+        position.width = 40f;
+
+        if (GetCurrentWindow().position.width > 335f)
         {
-            RemoveList(index);
-        });
+            Utility.Button(position, _buttonIconRoundedOneSide, _settings.BackgroundColor, () =>
+            {
+                RemoveList(index);
+            });
+
+            Utility.Box(position, _minusIconTexture, Color.white);
+        }
     }
 
     private static void RemoveList(int index)
     {
         var name = _manager.Lists[index].Name;
         _manager.RemoveList(index);
-        Logger.Log("List removed: " + name);
+
+        if (index >= 0 && index < _settings.ListsColors.Count)
+        {
+            Logger.Log("List removed: " + name);
+        }
+
         SaveData();
     }
 
@@ -554,6 +667,13 @@ public class EasyToDoWindow : EditorWindow
 
             _footerPosition -= LIST_VIEW_ANIMATION_FREQUENCY;
         }
+
+        if (_footerPosition > GetCurrentWindow().position.height - 40f)
+        {
+            _listViewHeight -= LIST_VIEW_ANIMATION_FREQUENCY;
+
+            _footerPosition -= LIST_VIEW_ANIMATION_FREQUENCY;
+        }
     }
 
     /// <summary>
@@ -562,26 +682,62 @@ public class EasyToDoWindow : EditorWindow
     /// <param name="window"></param>
     private static void DrawToDoListsSelectionView(EditorWindow window)
     {
-        var position = new Rect(10f, 0f, window.position.width - 20f, 40f);
+        var position = new Rect(0f, 0f, window.position.width, 40f);
 
         DrawLists(position);
-        // DrawAllListsCards(window); 
     }
 
+    /// <summary>
+    /// Draws lists UI element.
+    /// </summary>
+    /// <param name="position">Lists</param>
     private static void DrawLists(Rect position)
     {
+        // GUILayout.Space(100f);
+        // _listsScrollPosition = GUILayout.BeginScrollView(
+        //     _listsScrollPosition, GUILayout.Height(GetCurrentWindow().position.height - 100f));
+        var viewIndex = 0;
+
         for (int i = 0; i < _manager.Lists.Count; i++)
         {
-            position.y = (LISTS_CARDS_BEGINNING + 22f) + ((i + 1) * (position.height + LISTS_CARDS_OFFSET));
+            position.y = (LISTS_CARDS_BEGINNING + 12f) + ((i + 1) * (position.height + LISTS_CARDS_OFFSET));
 
             if (_listViewHeight >= position.y)
             {
-                Utility.DrawCard(position, _cardIconWideTexture, new Color(0.5f, 0.5f, 0.5f, 0.1f), () =>
+                // Color color = Color.grey;
+                // Utility.Box(new Rect(10f, position.y, 248f, 40f), _buttonIconRounded, color);
+                // Utility.Box(new Rect(50f, position.y, GetCurrentWindow().position.width - 100f, 40f), _boxTexture, color);
+                // Utility.Box(new Rect(GetCurrentWindow().position.width - 258f, position.y, 248f, 40f), _buttonIconRounded, color);
+
+                Utility.DrawCard(position, _boxTexture, new Color(0.5f, 0.5f, 0.5f, 0.1f), () =>
                 {
-                    DrawListsCardContent(i);
+                    DrawListsCardContent(position, i);
                 });
+
+                // GUILayout.Space(40f);
             }
+            // else
+            // {
+            //     GUILayout.Space(-40f);
+            // }
         }
+
+
+        // var prev = new Rect(GetCurrentWindow().position.width - 50f, 10f, 20f, 20f);
+        // var next = new Rect(GetCurrentWindow().position.width - 30f, 10f, 20f, 20f);
+
+        // Utility.Button(prev, _boxTexture, _settings.BackgroundColor, () =>
+        // {
+
+        // });
+
+        // Utility.Button(next, _boxTexture, _settings.BackgroundColor, () =>
+        // {
+
+        // });
+
+
+        // GUILayout.EndScrollView();
     }
 
     /// <summary>
@@ -589,7 +745,7 @@ public class EasyToDoWindow : EditorWindow
     /// </summary>
     /// <param name="position">Card position.</param>
     /// <param name="index">List index.</param>
-    private static void DrawListsCardContent(int index)
+    private static void DrawListsCardContent(Rect position, int index)
     {
         DrawListName(GetCurrentWindow(), index);
     }
@@ -670,6 +826,10 @@ public class EasyToDoWindow : EditorWindow
     private static void LoadData()
     {
         _manager = _manager.LoadFromFile(Application.dataPath + DATA_FILE_NAME);
+        if (_manager.Lists.Count == 1 && _settings.ListsColors.Count == 0)
+        {
+            _settings.ListsColors.Add(Color.grey);
+        }
     }
 
     /// <summary>
