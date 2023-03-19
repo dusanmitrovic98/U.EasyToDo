@@ -97,7 +97,6 @@ public class EasyToDoWindow : EditorWindow
         _menuIconTexture90 = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/MenuIconLight90.PNG");
         _plusIconTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/PlusIcon.PNG");
         _minusIconTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/MinusIcon.PNG");
-        _settings = EasyToDoSettingsWindow.LoadSettings();
 
         // Persist
         LoadData();
@@ -121,7 +120,6 @@ public class EasyToDoWindow : EditorWindow
         // Fixed Update
         _listsViewFixedUpdate.Disable();
         // Persist
-        EasyToDoSettingsWindow.SaveSettings();
         SaveData();
     }
 
@@ -826,10 +824,14 @@ public class EasyToDoWindow : EditorWindow
     private static void LoadData()
     {
         _manager = _manager.LoadFromFile(Application.dataPath + DATA_FILE_NAME);
+
         if (_manager.Lists.Count == 1 && _settings.ListsColors.Count == 0)
         {
             _settings.ListsColors.Add(Color.grey);
+            EasyToDoSettingsWindow.SaveSettings();
         }
+
+        _settings = EasyToDoSettingsWindow.LoadSettings();
     }
 
     /// <summary>
@@ -838,6 +840,7 @@ public class EasyToDoWindow : EditorWindow
     private static void SaveData()
     {
         _manager.SaveToFile(Application.dataPath + DATA_FILE_NAME);
+        EasyToDoSettingsWindow.SaveSettings();
 
         AssetDatabase.Refresh();
     }
